@@ -1,4 +1,4 @@
-import { Phone, User } from 'lucide-react';
+import { Phone, User, MapPin } from 'lucide-react';
 
 export default function Footer() {
     return (
@@ -27,8 +27,22 @@ export default function Footer() {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-light)' }}>
                         <Phone size={18} />
-                        <span>8220016649</span>
+                        <span>8220016649, 82200166649</span>
                     </div>
+                </div>
+
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    color: 'var(--text-light)',
+                    marginBottom: '1.5rem',
+                    maxWidth: '600px',
+                    margin: '0 auto 1.5rem'
+                }}>
+                    <MapPin size={18} style={{ flexShrink: 0 }} />
+                    <span>Ho.187 Raju Naidu street, Dr Radhakrishna St, near Omni Bus stand, Coimbatore, Tamil Nadu 641012</span>
                 </div>
 
                 <p style={{ color: 'var(--text-light)', marginBottom: '1rem' }}>
