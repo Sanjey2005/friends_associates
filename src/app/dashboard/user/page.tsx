@@ -20,15 +20,15 @@ export default function UserDashboard() {
         const fetchData = async () => {
             try {
                 const [vehiclesRes, policiesRes] = await Promise.all([
-                    axios.get('/api/vehicles'),
-                    axios.get('/api/policies'),
+                    axios.get('/api/vehicles', { withCredentials: true }),
+                    axios.get('/api/policies', { withCredentials: true }),
                 ]);
                 setVehicles(vehiclesRes.data);
                 setPolicies(policiesRes.data);
             } catch (error) {
                 console.error('Error fetching data:', error);
                 // If unauthorized, redirect to login
-                router.push('/login/user');
+                window.location.href = '/login/user';
             } finally {
                 setLoading(false);
             }

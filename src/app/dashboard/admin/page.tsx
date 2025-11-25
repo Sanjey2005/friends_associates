@@ -50,11 +50,11 @@ export default function AdminDashboard() {
     const fetchData = async () => {
         try {
             const [policiesRes, leadsRes, vehiclesRes, usersRes, chatsRes] = await Promise.all([
-                axios.get('/api/policies'),
-                axios.get('/api/leads'),
-                axios.get('/api/vehicles'),
-                axios.get('/api/users'),
-                axios.get('/api/chat?scope=admin'),
+                axios.get('/api/policies', { withCredentials: true }),
+                axios.get('/api/leads', { withCredentials: true }),
+                axios.get('/api/vehicles', { withCredentials: true }),
+                axios.get('/api/users', { withCredentials: true }),
+                axios.get('/api/chat?scope=admin', { withCredentials: true }),
             ]);
 
             setData({
@@ -66,7 +66,7 @@ export default function AdminDashboard() {
             });
         } catch (error) {
             console.error('Error fetching data:', error);
-            router.push('/login/admin');
+            window.location.href = '/login/admin';
         } finally {
             setLoading(false);
         }
@@ -81,7 +81,7 @@ export default function AdminDashboard() {
         if (activeTab === 'messages') {
             const interval = setInterval(async () => {
                 try {
-                    const res = await axios.get('/api/chat?scope=admin');
+                    const res = await axios.get('/api/chat?scope=admin', { withCredentials: true });
                     setData(prev => ({ ...prev, chats: res.data }));
                     // Update selected chat if open
                     if (selectedChat) {
@@ -177,10 +177,10 @@ export default function AdminDashboard() {
             await axios.post('/api/chat', {
                 text: adminMessage,
                 userId: selectedChat.userId._id
-            });
+            }, { withCredentials: true });
             setAdminMessage('');
             // Refresh data immediately
-            const res = await axios.get('/api/chat?scope=admin');
+            const res = await axios.get('/api/chat?scope=admin', { withCredentials: true });
             setData(prev => ({ ...prev, chats: res.data }));
             const updatedChat = res.data.find((c: any) => c._id === selectedChat._id);
             if (updatedChat) setSelectedChat(updatedChat);

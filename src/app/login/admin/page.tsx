@@ -27,7 +27,7 @@ export default function AdminLogin() {
                 // Use window.location for full page reload to ensure cookies are available
                 setTimeout(() => {
                     window.location.href = '/dashboard/admin';
-                }, 100);
+                }, 500);
             }
         } catch (error: any) {
             toast.error(error.response?.data?.error || 'Login failed');

@@ -13,7 +13,7 @@ export default function ChatWidget() {
 
     const fetchMessages = async () => {
         try {
-            const res = await axios.get('/api/chat');
+            const res = await axios.get('/api/chat', { withCredentials: true });
             if (res.data && res.data.messages) {
                 setMessages(res.data.messages);
             }
@@ -47,7 +47,7 @@ export default function ChatWidget() {
         setLoading(true);
 
         try {
-            const response = await axios.post('/api/chat', { text: messageText });
+            const response = await axios.post('/api/chat', { text: messageText }, { withCredentials: true });
             console.log('Message sent successfully:', response.data);
             await fetchMessages();
         } catch (error: any) {
