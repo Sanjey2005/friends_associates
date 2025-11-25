@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import { format } from 'date-fns';
 import { Car, FileText, LogOut } from 'lucide-react';
+import ChatWidget from '@/components/ChatWidget';
 
 export default function UserDashboard() {
     const router = useRouter();
@@ -129,6 +131,8 @@ export default function UserDashboard() {
                     )}
                 </section>
             </div>
+            <ChatWidget />
+            <Footer />
         </main>
     );
 }

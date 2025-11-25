@@ -5,227 +5,266 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import { User, Mail, Lock, Phone, ArrowRight } from 'lucide-react';
 
 export default function UserLogin() {
     const router = useRouter();
     const [isLogin, setIsLogin] = useState(true);
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState({
+    const [loginData, setLoginData] = useState({
+        email: '',
+        password: '',
+    });
+    const [registerData, setRegisterData] = useState({
         name: '',
         email: '',
         phone: '',
         password: '',
     });
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        const endpoint = isLogin ? '/api/auth/user/login' : '/api/auth/user/register';
-
         try {
-            const res = await axios.post(endpoint, formData);
-            if (res.status === 200 || res.status === 201) {
-                toast.success(isLogin ? 'Welcome back!' : 'Account created successfully!');
-                if (isLogin) {
-                    router.push('/dashboard/user');
-                } else {
-                    setIsLogin(true); // Switch to login after register
-                }
+            const res = await axios.post('/api/auth/user/login', loginData);
+            if (res.status === 200) {
+                toast.success('Welcome back!');
+                router.push('/dashboard/user');
             }
         } catch (error: any) {
-            toast.error(error.response?.data?.error || 'Authentication failed');
+            toast.error(error.response?.data?.error || 'Login failed');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRegister = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            const res = await axios.post('/api/auth/user/register', registerData);
+            if (res.status === 201) {
+                toast.success('Account created! Please check your email to verify.');
+                setIsLogin(true);
+                setLoginData({ email: registerData.email, password: '' });
+            }
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || 'Registration failed');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div style={{
-            minHeight: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'linear-gradient(135deg, #fdfbf7 0%, #e2e8f0 100%)', // Warm light gradient
-            padding: '2rem 1rem'
-        }}>
+        <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+            <Navbar />
             <div style={{
-                background: 'rgba(255, 255, 255, 0.95)',
-                padding: '3rem',
-                borderRadius: '2rem',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)',
-                width: '100%',
-                maxWidth: '500px',
-                position: 'relative',
-                overflow: 'hidden'
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '2rem 1rem'
             }}>
-                {/* Decorative background blob */}
-                <div style={{
-                    position: 'absolute',
-                    top: '-50px',
-                    right: '-50px',
-                    width: '150px',
-                    height: '150px',
-                    background: 'linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)',
-                    borderRadius: '50%',
-                    opacity: 0.1
-                }}></div>
-
-                <div style={{ textAlign: 'center', marginBottom: '2rem', position: 'relative' }}>
-                    <h1 style={{
-                        fontSize: '2.25rem',
-                        fontWeight: 800,
-                        color: '#1e293b',
-                        marginBottom: '0.5rem',
-                        letterSpacing: '-0.5px'
-                    }}>
-                        {isLogin ? 'Welcome Back' : 'Create Account'}
-                    </h1>
-                    <p style={{ color: '#64748b' }}>
-                        {isLogin ? 'Enter your credentials to access your account' : 'Join us to manage your insurance policies'}
-                    </p>
-                </div>
-
-                {/* Tabs */}
-                <div style={{
-                    display: 'flex',
-                    background: '#f1f5f9',
-                    padding: '0.5rem',
-                    borderRadius: '1rem',
-                    marginBottom: '2rem'
+                <div className="card" style={{
+                    width: '100%',
+                    maxWidth: '500px',
+                    padding: '3rem',
+                    borderRadius: '2rem',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
                 }}>
-                    <button
-                        onClick={() => setIsLogin(true)}
-                        style={{
-                            flex: 1,
-                            padding: '0.75rem',
-                            borderRadius: '0.75rem',
-                            border: 'none',
-                            background: isLogin ? 'white' : 'transparent',
-                            color: isLogin ? '#0f172a' : '#64748b',
-                            fontWeight: 600,
-                            boxShadow: isLogin ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' : 'none',
-                            transition: 'all 0.3s ease'
-                        }}
-                    >
-                        Login
-                    </button>
-                    <button
-                        onClick={() => setIsLogin(false)}
-                        style={{
-                            flex: 1,
-                            padding: '0.75rem',
-                            borderRadius: '0.75rem',
-                            border: 'none',
-                            background: !isLogin ? 'white' : 'transparent',
-                            color: !isLogin ? '#0f172a' : '#64748b',
-                            fontWeight: 600,
-                            boxShadow: !isLogin ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' : 'none',
-                            transition: 'all 0.3s ease'
-                        }}
-                    >
-                        Register
-                    </button>
-                </div>
+                    <div style={{
+                        position: 'absolute',
+                        top: '-50px',
+                        right: '-50px',
+                        width: '150px',
+                        height: '150px',
+                        background: 'linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%)',
+                        borderRadius: '50%',
+                        opacity: 0.2,
+                        filter: 'blur(40px)'
+                    }}></div>
 
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                    {!isLogin && (
-                        <div className="input-group" style={{ marginBottom: 0 }}>
-                            <label className="input-label" style={{ color: '#475569' }}>Full Name</label>
-                            <div style={{ position: 'relative' }}>
-                                <User size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                                <input
-                                    type="text"
-                                    className="input-field"
-                                    placeholder="John Doe"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    required={!isLogin}
-                                    style={{ paddingLeft: '3rem', background: '#f8fafc', borderColor: '#e2e8f0', color: '#334155' }}
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="input-group" style={{ marginBottom: 0 }}>
-                        <label className="input-label" style={{ color: '#475569' }}>Email Address</label>
-                        <div style={{ position: 'relative' }}>
-                            <Mail size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                            <input
-                                type="email"
-                                className="input-field"
-                                placeholder="john@example.com"
-                                value={formData.email}
-                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                required
-                                style={{ paddingLeft: '3rem', background: '#f8fafc', borderColor: '#e2e8f0', color: '#334155' }}
-                            />
-                        </div>
+                    <div style={{ textAlign: 'center', marginBottom: '2rem', position: 'relative' }}>
+                        <h1 style={{
+                            fontSize: '2.25rem',
+                            fontWeight: 800,
+                            background: 'linear-gradient(135deg, #fff 0%, #94a3b8 100%)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            marginBottom: '0.5rem'
+                        }}>
+                            {isLogin ? 'Welcome Back' : 'Create Account'}
+                        </h1>
+                        <p style={{ color: 'var(--text-light)', fontSize: '1rem' }}>
+                            {isLogin ? 'Login to access your dashboard' : 'Join us to manage your insurance'}
+                        </p>
                     </div>
 
-                    {!isLogin && (
-                        <div className="input-group" style={{ marginBottom: 0 }}>
-                            <label className="input-label" style={{ color: '#475569' }}>Phone Number</label>
-                            <div style={{ position: 'relative' }}>
-                                <Phone size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                                <input
-                                    type="tel"
-                                    className="input-field"
-                                    placeholder="+91 98765 43210"
-                                    value={formData.phone}
-                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                    required={!isLogin}
-                                    style={{ paddingLeft: '3rem', background: '#f8fafc', borderColor: '#e2e8f0', color: '#334155' }}
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="input-group" style={{ marginBottom: 0 }}>
-                        <label className="input-label" style={{ color: '#475569' }}>Password</label>
-                        <div style={{ position: 'relative' }}>
-                            <Lock size={20} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                            <input
-                                type="password"
-                                className="input-field"
-                                placeholder="••••••••"
-                                value={formData.password}
-                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                required
-                                style={{ paddingLeft: '3rem', background: '#f8fafc', borderColor: '#e2e8f0', color: '#334155' }}
-                            />
-                        </div>
+                    <div style={{
+                        display: 'flex',
+                        gap: '1rem',
+                        marginBottom: '2rem',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        padding: '0.5rem',
+                        borderRadius: '1rem'
+                    }}>
+                        <button
+                            onClick={() => setIsLogin(true)}
+                            className={isLogin ? 'btn btn-primary' : 'btn btn-outline'}
+                            style={{ flex: 1, padding: '0.75rem' }}
+                        >
+                            Login
+                        </button>
+                        <button
+                            onClick={() => setIsLogin(false)}
+                            className={!isLogin ? 'btn btn-primary' : 'btn btn-outline'}
+                            style={{ flex: 1, padding: '0.75rem' }}
+                        >
+                            Register
+                        </button>
                     </div>
 
-                    {isLogin && (
-                        <div style={{ textAlign: 'right' }}>
-                            <a href="#" style={{ fontSize: '0.875rem', color: '#6366f1', fontWeight: 500 }}>Forgot Password?</a>
-                        </div>
+                    {isLogin ? (
+                        <form onSubmit={handleLogin}>
+                            <div className="input-group">
+                                <label className="input-label">Email Address</label>
+                                <div style={{ position: 'relative' }}>
+                                    <Mail size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
+                                    <input
+                                        type="email"
+                                        className="input-field"
+                                        style={{ paddingLeft: '2.5rem' }}
+                                        placeholder="john@example.com"
+                                        value={loginData.email}
+                                        onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="input-group">
+                                <label className="input-label">Password</label>
+                                <div style={{ position: 'relative' }}>
+                                    <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
+                                    <input
+                                        type="password"
+                                        className="input-field"
+                                        style={{ paddingLeft: '2.5rem' }}
+                                        placeholder="••••••••"
+                                        value={loginData.password}
+                                        onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div style={{ textAlign: 'right', marginBottom: '1rem' }}>
+                                <Link href="/forgot-password" style={{ color: 'var(--primary)', fontSize: '0.9rem', textDecoration: 'none' }}>
+                                    Forgot Password?
+                                </Link>
+                            </div>
+
+                            <button
+                                type="submit"
+                                className="btn btn-primary"
+                                style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}
+                                disabled={loading}
+                            >
+                                {loading ? 'Logging in...' : 'Login'}
+                                {!loading && <ArrowRight size={18} />}
+                            </button>
+                        </form>
+                    ) : (
+                        <form onSubmit={handleRegister}>
+                            <div className="input-group">
+                                <label className="input-label">Full Name</label>
+                                <div style={{ position: 'relative' }}>
+                                    <User size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
+                                    <input
+                                        type="text"
+                                        className="input-field"
+                                        style={{ paddingLeft: '2.5rem' }}
+                                        placeholder="John Doe"
+                                        value={registerData.name}
+                                        onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="input-group">
+                                <label className="input-label">Email Address</label>
+                                <div style={{ position: 'relative' }}>
+                                    <Mail size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
+                                    <input
+                                        type="email"
+                                        className="input-field"
+                                        style={{ paddingLeft: '2.5rem' }}
+                                        placeholder="john@example.com"
+                                        value={registerData.email}
+                                        onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="input-group">
+                                <label className="input-label">Phone Number</label>
+                                <div style={{ position: 'relative' }}>
+                                    <Phone size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
+                                    <input
+                                        type="tel"
+                                        className="input-field"
+                                        style={{ paddingLeft: '2.5rem' }}
+                                        placeholder="9876543210"
+                                        value={registerData.phone}
+                                        onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="input-group">
+                                <label className="input-label">Password</label>
+                                <div style={{ position: 'relative' }}>
+                                    <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
+                                    <input
+                                        type="password"
+                                        className="input-field"
+                                        style={{ paddingLeft: '2.5rem' }}
+                                        placeholder="••••••••"
+                                        value={registerData.password}
+                                        onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                                        required
+                                        minLength={6}
+                                    />
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                className="btn btn-primary"
+                                style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}
+                                disabled={loading}
+                            >
+                                {loading ? 'Creating Account...' : 'Create Account'}
+                                {!loading && <ArrowRight size={18} />}
+                            </button>
+                        </form>
                     )}
 
-                    <button
-                        type="submit"
-                        className="btn btn-primary"
-                        style={{
-                            marginTop: '0.5rem',
-                            padding: '1rem',
-                            fontSize: '1rem',
-                            background: 'linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)',
-                            boxShadow: '0 10px 20px rgba(236, 72, 153, 0.3)'
-                        }}
-                        disabled={loading}
-                    >
-                        {loading ? 'Processing...' : (isLogin ? 'Login' : 'Create Account')}
-                        {!loading && <ArrowRight size={20} style={{ marginLeft: '0.5rem' }} />}
-                    </button>
-                </form>
-
-                <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-                    <Link href="/" style={{ color: '#94a3b8', fontSize: '0.9rem', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-                        Back to Home
-                    </Link>
+                    <div style={{ marginTop: '2rem', textAlign: 'center' }}>
+                        <Link href="/" style={{ color: 'var(--text-light)', fontSize: '0.9rem', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '0.5rem', transition: 'color 0.3s' }} className="hover:text-white">
+                            Back to Home
+                        </Link>
+                    </div>
                 </div>
             </div>
-        </div>
+            <Footer />
+        </main>
     );
 }

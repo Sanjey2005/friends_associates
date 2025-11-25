@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
+import crypto from 'crypto';
+import { sendEmail } from '@/lib/email';
 
 export async function POST(req: Request) {
     try {
@@ -18,18 +20,33 @@ export async function POST(req: Request) {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+        const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
         const user = await User.create({
             name,
             email,
             phone,
             password: hashedPassword,
-            isVerified: false, // Should be verified via email
+            isVerified: false,
+            verificationToken,
+            verificationTokenExpiry
         });
 
-        // TODO: Send verification email
+        const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${verificationToken}`;
 
-        return NextResponse.json({ message: 'User registered successfully. Please verify your email.' }, { status: 201 });
+        await sendEmail(
+            email,
+            'Verify your email - Friends Associates',
+            `
+                <h1>Welcome to Friends Associates</h1>
+                <p>Please click the link below to verify your email address:</p>
+                <a href="${verifyUrl}">${verifyUrl}</a>
+                <p>This link will expire in 24 hours.</p>
+            `
+        );
+
+        return NextResponse.json({ message: 'User registered successfully. Please check your email to verify your account.' }, { status: 201 });
     } catch (error) {
         console.error('Registration error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

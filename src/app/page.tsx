@@ -51,7 +51,7 @@ export default function Home() {
             backdropFilter: 'blur(10px)'
           }}>
             <Sparkles size={16} style={{ color: '#fbbf24' }} />
-            <span style={{ fontSize: '0.9rem', color: 'var(--text-light)' }}>20+ Years of Excellence</span>
+            <span style={{ fontSize: '0.9rem', color: 'var(--text-light)' }}>5 Years of Excellence</span>
           </div>
 
           <h1 style={{
@@ -119,7 +119,7 @@ export default function Home() {
               borderRadius: '9999px'
             }}></div>
             <p style={{ color: 'var(--text-light)', maxWidth: '700px', margin: '0 auto', fontSize: '1.1rem' }}>
-              With over 20 years of experience in the Indian insurance industry, we deliver exceptional service and personalized solutions for all your insurance needs.
+              With 5 years of experience in the Indian insurance industry, we deliver exceptional service and personalized solutions for all your insurance needs.
             </p>
           </div>
 

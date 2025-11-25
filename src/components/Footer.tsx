@@ -46,7 +46,7 @@ export default function Footer() {
                 </div>
 
                 <p style={{ color: 'var(--text-light)', marginBottom: '1rem' }}>
-                    Your trusted insurance partner since 2003
+                    Your trusted insurance partner since 2020
                 </p>
                 <p style={{ color: 'var(--text-light)', fontSize: '0.9rem' }}>
                     © 2025 Friends Associates. All rights reserved.

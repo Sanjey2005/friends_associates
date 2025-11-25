@@ -10,8 +10,12 @@ export async function GET() {
     // Admin Authentication
     const cookieStore = await cookies();
     const token = cookieStore.get('admin_token')?.value;
-    const admin = await verifyAdminToken(token);
 
+    if (!token) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const admin = await verifyAdminToken(token);
     if (!admin) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

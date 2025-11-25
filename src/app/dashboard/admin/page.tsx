@@ -4,20 +4,22 @@ import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import AdminAnalytics from '@/components/AdminAnalytics';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import { LogOut, Search, Filter, Edit, Save, X, Plus, Car, Check, ChevronDown } from 'lucide-react';
+import { LogOut, Search, Filter, Edit, Save, X, Plus, Car, Check, ChevronDown, MessageCircle, Send } from 'lucide-react';
 
 export default function AdminDashboard() {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('analytics');
     const [loading, setLoading] = useState(true);
-    const [data, setData] = useState<{ policies: any[], leads: any[], users: any[], vehicles: any[] }>({
+    const [data, setData] = useState<{ policies: any[], leads: any[], users: any[], vehicles: any[], chats: any[] }>({
         policies: [],
         leads: [],
         users: [],
         vehicles: [],
+        chats: [],
     });
 
     // Filters
@@ -39,32 +41,63 @@ export default function AdminDashboard() {
     const [showUserDropdown, setShowUserDropdown] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
+    // Chat State
+    const [selectedChat, setSelectedChat] = useState<any>(null);
+    const [adminMessage, setAdminMessage] = useState('');
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    const fetchData = async () => {
+        try {
+            const [policiesRes, leadsRes, vehiclesRes, usersRes, chatsRes] = await Promise.all([
+                axios.get('/api/policies'),
+                axios.get('/api/leads'),
+                axios.get('/api/vehicles'),
+                axios.get('/api/users'),
+                axios.get('/api/chat?scope=admin'),
+            ]);
+
+            setData({
+                policies: policiesRes.data,
+                leads: leadsRes.data,
+                users: usersRes.data,
+                vehicles: vehiclesRes.data,
+                chats: chatsRes.data,
+            });
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            router.push('/login/admin');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [policiesRes, leadsRes, vehiclesRes, usersRes] = await Promise.all([
-                    axios.get('/api/policies'),
-                    axios.get('/api/leads'),
-                    axios.get('/api/vehicles'),
-                    axios.get('/api/users'),
-                ]);
-
-                setData({
-                    policies: policiesRes.data,
-                    leads: leadsRes.data,
-                    users: usersRes.data,
-                    vehicles: vehiclesRes.data,
-                });
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                router.push('/login/admin');
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchData();
     }, [router]);
+
+    // Poll for chats if on messages tab
+    useEffect(() => {
+        if (activeTab === 'messages') {
+            const interval = setInterval(async () => {
+                try {
+                    const res = await axios.get('/api/chat?scope=admin');
+                    setData(prev => ({ ...prev, chats: res.data }));
+                    // Update selected chat if open
+                    if (selectedChat) {
+                        const updatedChat = res.data.find((c: any) => c._id === selectedChat._id);
+                        if (updatedChat) setSelectedChat(updatedChat);
+                    }
+                } catch (error) {
+                    console.error(error);
+                }
+            }, 5000);
+            return () => clearInterval(interval);
+        }
+    }, [activeTab, selectedChat]);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [selectedChat]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -135,6 +168,26 @@ export default function AdminDashboard() {
         }
     };
 
+    const handleSendAdminMessage = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!adminMessage.trim() || !selectedChat) return;
+
+        try {
+            await axios.post('/api/chat', {
+                text: adminMessage,
+                userId: selectedChat.userId._id
+            });
+            setAdminMessage('');
+            // Refresh data immediately
+            const res = await axios.get('/api/chat?scope=admin');
+            setData(prev => ({ ...prev, chats: res.data }));
+            const updatedChat = res.data.find((c: any) => c._id === selectedChat._id);
+            if (updatedChat) setSelectedChat(updatedChat);
+        } catch (error) {
+            toast.error('Failed to send message');
+        }
+    };
+
     // Filter Policies
     const filteredPolicies = data.policies.filter(p => {
         const matchesSearch =
@@ -191,7 +244,7 @@ export default function AdminDashboard() {
 
             <div className="container" style={{ padding: '2rem 1rem' }}>
                 <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', overflowX: 'auto' }}>
-                    {['analytics', 'policies', 'leads', 'users', 'vehicles'].map(tab => (
+                    {['analytics', 'policies', 'leads', 'users', 'vehicles', 'messages'].map(tab => (
                         <button
                             key={tab}
                             className={`btn ${activeTab === tab ? 'btn-primary' : 'btn-outline'}`}
@@ -355,6 +408,90 @@ export default function AdminDashboard() {
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'messages' && (
+                    <div className="card" style={{ height: '600px', display: 'flex', overflow: 'hidden', padding: 0 }}>
+                        {/* Chat List */}
+                        <div style={{ width: '300px', borderRight: '1px solid var(--border)', overflowY: 'auto', background: 'var(--bg-secondary)' }}>
+                            {data.chats.length === 0 ? (
+                                <div style={{ padding: '1rem', color: 'var(--text-light)', textAlign: 'center' }}>No messages yet</div>
+                            ) : (
+                                data.chats.map(chat => (
+                                    <div
+                                        key={chat._id}
+                                        onClick={() => setSelectedChat(chat)}
+                                        style={{
+                                            padding: '1rem',
+                                            cursor: 'pointer',
+                                            background: selectedChat?._id === chat._id ? 'var(--primary-light)' : 'transparent',
+                                            borderBottom: '1px solid var(--border)'
+                                        }}
+                                    >
+                                        <div style={{ fontWeight: 600 }}>{chat.userId?.name || 'Unknown User'}</div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>{chat.userId?.email}</div>
+                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-light)', marginTop: '0.25rem' }}>
+                                            {format(new Date(chat.lastUpdated), 'dd MMM HH:mm')}
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        {/* Chat Window */}
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                            {selectedChat ? (
+                                <>
+                                    <div style={{ padding: '1rem', borderBottom: '1px solid var(--border)', background: 'var(--surface)' }}>
+                                        <h3 style={{ margin: 0 }}>{selectedChat.userId?.name}</h3>
+                                        <span style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>{selectedChat.userId?.email}</span>
+                                    </div>
+                                    <div style={{ flex: 1, padding: '1rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem', background: 'var(--background)' }}>
+                                        {selectedChat.messages.map((msg: any, idx: number) => (
+                                            <div
+                                                key={idx}
+                                                style={{
+                                                    alignSelf: msg.sender === 'admin' ? 'flex-end' : 'flex-start',
+                                                    maxWidth: '70%',
+                                                    padding: '0.75rem 1rem',
+                                                    borderRadius: '1rem',
+                                                    borderBottomRightRadius: msg.sender === 'admin' ? 0 : '1rem',
+                                                    borderBottomLeftRadius: msg.sender === 'user' ? 0 : '1rem',
+                                                    background: msg.sender === 'admin' ? 'var(--primary)' : 'var(--surface-light)',
+                                                    color: msg.sender === 'admin' ? 'white' : 'var(--text)',
+                                                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                                }}
+                                            >
+                                                <div>{msg.text}</div>
+                                                <div style={{ fontSize: '0.7rem', opacity: 0.7, marginTop: '0.25rem', textAlign: 'right' }}>
+                                                    {format(new Date(msg.timestamp), 'HH:mm')}
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <div ref={messagesEndRef} />
+                                    </div>
+                                    <form onSubmit={handleSendAdminMessage} style={{ padding: '1rem', borderTop: '1px solid var(--border)', display: 'flex', gap: '0.5rem', background: 'var(--surface)' }}>
+                                        <input
+                                            type="text"
+                                            className="input-field"
+                                            placeholder="Type a reply..."
+                                            value={adminMessage}
+                                            onChange={(e) => setAdminMessage(e.target.value)}
+                                            style={{ padding: '0.75rem' }}
+                                        />
+                                        <button type="submit" className="btn btn-primary" style={{ padding: '0.75rem' }}>
+                                            <Send size={18} />
+                                        </button>
+                                    </form>
+                                </>
+                            ) : (
+                                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-light)', flexDirection: 'column' }}>
+                                    <MessageCircle size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
+                                    <p>Select a conversation to start messaging</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
@@ -665,6 +802,7 @@ export default function AdminDashboard() {
                     background: var(--bg-secondary) !important;
                 }
             `}</style>
+            <Footer />
         </main>
     );
 }
