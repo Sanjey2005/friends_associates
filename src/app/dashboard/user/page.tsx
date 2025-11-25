@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { format } from 'date-fns';
@@ -49,8 +50,21 @@ export default function UserDashboard() {
     return (
         <main>
             <nav className="navbar">
-                <div className="container navbar-content">
-                    <div className="logo">User Dashboard</div>
+                <div className="container navbar-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <Image
+                            src="/logo.png"
+                            alt="Friends Associates logo"
+                            width={48}
+                            height={48}
+                            style={{ objectFit: 'contain' }}
+                            priority
+                        />
+                        <div>
+                            <div className="logo" style={{ margin: 0 }}>Friends Associates</div>
+                            <div style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>User Dashboard</div>
+                        </div>
+                    </div>
                     <button onClick={handleLogout} className="btn btn-outline" style={{ display: 'flex', gap: '0.5rem' }}>
                         <LogOut size={18} /> Logout
                     </button>
