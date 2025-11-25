@@ -86,6 +86,8 @@ export async function POST(req: Request) {
 
         const body = await req.json();
         const policy = await Policy.create(body);
+        await policy.populate('userId', 'name email phone');
+        await policy.populate('vehicleId', 'type vehicleModel regNumber');
         return NextResponse.json(policy, { status: 201 });
     } catch (error) {
         console.error('Create policy error:', error);

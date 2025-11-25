@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import AdminAnalytics from '@/components/AdminAnalytics';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import { LogOut, Search, Filter, Edit, Save, X } from 'lucide-react';
+import { LogOut, Search, Filter, Edit, Save, X, Plus, Car, Check, ChevronDown } from 'lucide-react';
 
 export default function AdminDashboard() {
     const router = useRouter();
@@ -25,38 +25,34 @@ export default function AdminDashboard() {
     const [filterType, setFilterType] = useState('');
     const [filterExpiry, setFilterExpiry] = useState('');
 
-    // Edit Policy State
+    // Edit/Create States
     const [editingPolicy, setEditingPolicy] = useState<any>(null);
+    const [isCreatingPolicy, setIsCreatingPolicy] = useState(false);
+    const [isAddingVehicle, setIsAddingVehicle] = useState(false);
+
+    // New Policy/Vehicle Form Data
+    const [newPolicy, setNewPolicy] = useState({ userId: '', vehicleId: '', policyLink: '', expiryDate: '', notes: '', status: 'Active' });
+    const [newVehicle, setNewVehicle] = useState({ userId: '', type: 'Car', vehicleModel: '', regNumber: '', details: '' });
+
+    // User Search State for Modals
+    const [userSearch, setUserSearch] = useState('');
+    const [showUserDropdown, setShowUserDropdown] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [policiesRes, leadsRes, vehiclesRes] = await Promise.all([
+                const [policiesRes, leadsRes, vehiclesRes, usersRes] = await Promise.all([
                     axios.get('/api/policies'),
                     axios.get('/api/leads'),
                     axios.get('/api/vehicles'),
+                    axios.get('/api/users'),
                 ]);
-                // Users are not fetched separately in my API plan, but I can infer them or add an endpoint.
-                // Or just use the populated data.
-                // Let's add a simple users endpoint or just extract unique users from policies/vehicles?
-                // Better to have an endpoint. I'll skip users tab content for now or just show users from policies.
-                // Actually, "View all users" is a requirement.
-                // I'll add a quick API for users or just rely on what I have.
-                // I'll just use the users I get from policies/vehicles for now to save time, or add the endpoint if strictly needed.
-                // Requirement: "View all users".
-                // I'll assume I can get them. I'll add a quick fetch for users if I can, but I didn't make the endpoint.
-                // I'll just skip the Users tab implementation detail or show "Coming Soon" or extract from vehicles.
-                // I'll extract from vehicles since every vehicle has a user.
-
-                const uniqueUsers = new Map();
-                vehiclesRes.data.forEach((v: any) => {
-                    if (v.userId) uniqueUsers.set(v.userId._id, v.userId);
-                });
 
                 setData({
                     policies: policiesRes.data,
                     leads: leadsRes.data,
-                    users: Array.from(uniqueUsers.values()),
+                    users: usersRes.data,
                     vehicles: vehiclesRes.data,
                 });
             } catch (error) {
@@ -69,6 +65,19 @@ export default function AdminDashboard() {
 
         fetchData();
     }, [router]);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setShowUserDropdown(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
     const handleLogout = () => {
         document.cookie = 'admin_token=; Max-Age=0; path=/;';
@@ -85,7 +94,6 @@ export default function AdminDashboard() {
                 notes: editingPolicy.notes,
             });
 
-            // Update local state
             setData(prev => ({
                 ...prev,
                 policies: prev.policies.map(p => p._id === editingPolicy._id ? res.data : p)
@@ -96,6 +104,34 @@ export default function AdminDashboard() {
         } catch (error) {
             console.error(error);
             toast.error('Failed to update policy');
+        }
+    };
+
+    const handleCreatePolicy = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const res = await axios.post('/api/policies', newPolicy);
+            setData(prev => ({ ...prev, policies: [...prev.policies, res.data] }));
+            setIsCreatingPolicy(false);
+            setNewPolicy({ userId: '', vehicleId: '', policyLink: '', expiryDate: '', notes: '', status: 'Active' });
+            setUserSearch('');
+            toast.success('Policy created successfully');
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || 'Failed to create policy');
+        }
+    };
+
+    const handleAddVehicle = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const res = await axios.post('/api/vehicles', newVehicle);
+            setData(prev => ({ ...prev, vehicles: [...prev.vehicles, res.data] }));
+            setIsAddingVehicle(false);
+            setNewVehicle({ userId: '', type: 'Car', vehicleModel: '', regNumber: '', details: '' });
+            setUserSearch('');
+            toast.success('Vehicle added successfully');
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || 'Failed to add vehicle');
         }
     };
 
@@ -121,6 +157,24 @@ export default function AdminDashboard() {
 
         return matchesSearch && matchesType && matchesExpiry;
     });
+
+    // Filter Users for Modals
+    const filteredUsers = data.users.filter(u =>
+        u.name.toLowerCase().includes(userSearch.toLowerCase()) ||
+        u.email.toLowerCase().includes(userSearch.toLowerCase())
+    );
+
+    const selectUserForPolicy = (user: any) => {
+        setNewPolicy({ ...newPolicy, userId: user._id, vehicleId: '' });
+        setUserSearch(user.name);
+        setShowUserDropdown(false);
+    };
+
+    const selectUserForVehicle = (user: any) => {
+        setNewVehicle({ ...newVehicle, userId: user._id });
+        setUserSearch(user.name);
+        setShowUserDropdown(false);
+    };
 
     if (loading) return <div className="container" style={{ padding: '2rem' }}>Loading...</div>;
 
@@ -155,32 +209,37 @@ export default function AdminDashboard() {
 
                 {activeTab === 'policies' && (
                     <div className="card">
-                        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-                            <div className="input-group" style={{ marginBottom: 0, flex: 1, minWidth: '200px' }}>
-                                <div style={{ position: 'relative' }}>
-                                    <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
-                                    <input
-                                        type="text"
-                                        placeholder="Search user, email, reg number..."
-                                        className="input-field"
-                                        style={{ paddingLeft: '2.5rem' }}
-                                        value={searchTerm}
-                                        onChange={e => setSearchTerm(e.target.value)}
-                                    />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                            <div style={{ display: 'flex', gap: '1rem', flex: 1, flexWrap: 'wrap' }}>
+                                <div className="input-group" style={{ marginBottom: 0, flex: 1, minWidth: '200px' }}>
+                                    <div style={{ position: 'relative' }}>
+                                        <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
+                                        <input
+                                            type="text"
+                                            placeholder="Search user, email, reg number..."
+                                            className="input-field"
+                                            style={{ paddingLeft: '2.5rem' }}
+                                            value={searchTerm}
+                                            onChange={e => setSearchTerm(e.target.value)}
+                                        />
+                                    </div>
                                 </div>
+                                <select className="input-field" style={{ width: 'auto' }} value={filterType} onChange={e => setFilterType(e.target.value)}>
+                                    <option value="">All Types</option>
+                                    <option value="Bike">Bike</option>
+                                    <option value="Car">Car</option>
+                                    <option value="Commercial">Commercial</option>
+                                </select>
+                                <select className="input-field" style={{ width: 'auto' }} value={filterExpiry} onChange={e => setFilterExpiry(e.target.value)}>
+                                    <option value="">All Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="soon">Expiring Soon</option>
+                                    <option value="expired">Expired</option>
+                                </select>
                             </div>
-                            <select className="input-field" style={{ width: 'auto' }} value={filterType} onChange={e => setFilterType(e.target.value)}>
-                                <option value="">All Types</option>
-                                <option value="Bike">Bike</option>
-                                <option value="Car">Car</option>
-                                <option value="Commercial">Commercial</option>
-                            </select>
-                            <select className="input-field" style={{ width: 'auto' }} value={filterExpiry} onChange={e => setFilterExpiry(e.target.value)}>
-                                <option value="">All Status</option>
-                                <option value="active">Active</option>
-                                <option value="soon">Expiring Soon</option>
-                                <option value="expired">Expired</option>
-                            </select>
+                            <button className="btn btn-primary" onClick={() => setIsCreatingPolicy(true)}>
+                                <Plus size={18} style={{ marginRight: '0.5rem' }} /> Create Policy
+                            </button>
                         </div>
 
                         <div className="table-container">
@@ -203,13 +262,13 @@ export default function AdminDashboard() {
                                                 <div style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>{policy.userId?.email}</div>
                                             </td>
                                             <td>
-                                                <div>{policy.vehicleId?.model}</div>
+                                                <div>{policy.vehicleId?.vehicleModel}</div>
                                                 <div style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>{policy.vehicleId?.regNumber}</div>
                                             </td>
                                             <td>{format(new Date(policy.expiryDate), 'dd MMM yyyy')}</td>
                                             <td>
                                                 <span className={`badge ${policy.status === 'Active' ? 'badge-success' :
-                                                        policy.status === 'Expired' ? 'badge-error' : 'badge-warning'
+                                                    policy.status === 'Expired' ? 'badge-error' : 'badge-warning'
                                                     }`}>
                                                     {policy.status}
                                                 </span>
@@ -262,7 +321,6 @@ export default function AdminDashboard() {
                     </div>
                 )}
 
-                {/* Users and Vehicles tabs can be similar tables */}
                 {activeTab === 'users' && (
                     <div className="card table-container">
                         <table className="table">
@@ -277,34 +335,38 @@ export default function AdminDashboard() {
                 )}
 
                 {activeTab === 'vehicles' && (
-                    <div className="card table-container">
-                        <table className="table">
-                            <thead><tr><th>Owner</th><th>Type</th><th>Model</th><th>Reg Number</th></tr></thead>
-                            <tbody>
-                                {data.vehicles.map((v: any) => (
-                                    <tr key={v._id}>
-                                        <td>{v.userId?.name}</td>
-                                        <td>{v.type}</td>
-                                        <td>{v.vehicleModel}</td>
-                                        <td>{v.regNumber}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                    <div className="card">
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
+                            <button className="btn btn-primary" onClick={() => setIsAddingVehicle(true)}>
+                                <Plus size={18} style={{ marginRight: '0.5rem' }} /> Add Vehicle
+                            </button>
+                        </div>
+                        <div className="table-container">
+                            <table className="table">
+                                <thead><tr><th>Owner</th><th>Type</th><th>Model</th><th>Reg Number</th></tr></thead>
+                                <tbody>
+                                    {data.vehicles.map((v: any) => (
+                                        <tr key={v._id}>
+                                            <td>{v.userId?.name}</td>
+                                            <td>{v.type}</td>
+                                            <td>{v.vehicleModel}</td>
+                                            <td>{v.regNumber}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 )}
             </div>
 
             {/* Edit Policy Modal */}
             {editingPolicy && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 100
-                }}>
-                    <div className="card" style={{ width: '100%', maxWidth: '500px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                <div className="modal-overlay">
+                    <div className="card modal-content">
+                        <div className="modal-header">
                             <h3>Update Policy</h3>
-                            <button onClick={() => setEditingPolicy(null)} style={{ background: 'none', border: 'none' }}><X /></button>
+                            <button onClick={() => setEditingPolicy(null)} className="btn-icon"><X /></button>
                         </div>
                         <form onSubmit={handleUpdatePolicy}>
                             <div className="input-group">
@@ -336,7 +398,7 @@ export default function AdminDashboard() {
                                     rows={3}
                                 />
                             </div>
-                            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+                            <div className="modal-actions">
                                 <button type="button" className="btn btn-outline" onClick={() => setEditingPolicy(null)}>Cancel</button>
                                 <button type="submit" className="btn btn-primary">Save Changes</button>
                             </div>
@@ -344,6 +406,265 @@ export default function AdminDashboard() {
                     </div>
                 </div>
             )}
+
+            {/* Create Policy Modal */}
+            {isCreatingPolicy && (
+                <div className="modal-overlay">
+                    <div className="card modal-content">
+                        <div className="modal-header">
+                            <h3>Create New Policy</h3>
+                            <button onClick={() => setIsCreatingPolicy(false)} className="btn-icon"><X /></button>
+                        </div>
+                        <form onSubmit={handleCreatePolicy}>
+                            <div className="input-group" style={{ position: 'relative' }} ref={dropdownRef}>
+                                <label className="input-label">Select User</label>
+                                <div style={{ position: 'relative' }}>
+                                    <input
+                                        type="text"
+                                        className="input-field"
+                                        placeholder="Search user..."
+                                        value={userSearch}
+                                        onChange={e => { setUserSearch(e.target.value); setShowUserDropdown(true); }}
+                                        onFocus={() => setShowUserDropdown(true)}
+                                        style={{ paddingRight: '2rem' }}
+                                    />
+                                    <ChevronDown size={16} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)', pointerEvents: 'none' }} />
+                                </div>
+
+                                {showUserDropdown && (
+                                    <div style={{
+                                        position: 'absolute', top: '100%', left: 0, right: 0,
+                                        maxHeight: '200px', overflowY: 'auto',
+                                        border: '1px solid var(--border)', borderRadius: '0.5rem',
+                                        background: '#1e293b', zIndex: 50,
+                                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)'
+                                    }}>
+                                        {filteredUsers.length > 0 ? (
+                                            filteredUsers.map((u: any) => (
+                                                <div
+                                                    key={u._id}
+                                                    onClick={() => selectUserForPolicy(u)}
+                                                    style={{
+                                                        padding: '0.75rem',
+                                                        cursor: 'pointer',
+                                                        background: newPolicy.userId === u._id ? 'var(--primary-light)' : 'transparent',
+                                                        borderBottom: '1px solid var(--border)',
+                                                        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                                    }}
+                                                    className="dropdown-item"
+                                                >
+                                                    <div>
+                                                        <div style={{ fontWeight: 500 }}>{u.name}</div>
+                                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>{u.email}</div>
+                                                    </div>
+                                                    {newPolicy.userId === u._id && <Check size={16} color="var(--primary)" />}
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div style={{ padding: '0.75rem', color: 'var(--text-light)', textAlign: 'center' }}>No users found</div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {newPolicy.userId && (
+                                <div className="input-group">
+                                    <label className="input-label">Select Vehicle</label>
+                                    <select
+                                        className="input-field"
+                                        value={newPolicy.vehicleId}
+                                        onChange={e => setNewPolicy({ ...newPolicy, vehicleId: e.target.value })}
+                                        required
+                                    >
+                                        <option value="">Select Vehicle</option>
+                                        {data.vehicles
+                                            .filter((v: any) => v.userId && (v.userId._id === newPolicy.userId || v.userId === newPolicy.userId))
+                                            .map((v: any) => (
+                                                <option key={v._id} value={v._id}>{v.vehicleModel} - {v.regNumber}</option>
+                                            ))
+                                        }
+                                    </select>
+                                    {data.vehicles.filter((v: any) => v.userId && (v.userId._id === newPolicy.userId || v.userId === newPolicy.userId)).length === 0 && (
+                                        <p style={{ fontSize: '0.8rem', color: 'var(--error)', marginTop: '0.25rem' }}>No vehicles found for this user.</p>
+                                    )}
+                                </div>
+                            )}
+
+                            <div className="input-group">
+                                <label className="input-label">Policy Link</label>
+                                <input
+                                    type="url"
+                                    className="input-field"
+                                    value={newPolicy.policyLink}
+                                    onChange={e => setNewPolicy({ ...newPolicy, policyLink: e.target.value })}
+                                    placeholder="https://drive.google.com/..."
+                                />
+                            </div>
+                            <div className="input-group">
+                                <label className="input-label">Expiry Date</label>
+                                <input
+                                    type="date"
+                                    className="input-field"
+                                    value={newPolicy.expiryDate}
+                                    onChange={e => setNewPolicy({ ...newPolicy, expiryDate: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div className="input-group">
+                                <label className="input-label">Status</label>
+                                <select
+                                    className="input-field"
+                                    value={newPolicy.status}
+                                    onChange={e => setNewPolicy({ ...newPolicy, status: e.target.value })}
+                                >
+                                    <option value="Active">Active</option>
+                                    <option value="Expiring Soon">Expiring Soon</option>
+                                    <option value="Expired">Expired</option>
+                                </select>
+                            </div>
+                            <div className="modal-actions">
+                                <button type="button" className="btn btn-outline" onClick={() => setIsCreatingPolicy(false)}>Cancel</button>
+                                <button type="submit" className="btn btn-primary">Create Policy</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Add Vehicle Modal */}
+            {isAddingVehicle && (
+                <div className="modal-overlay">
+                    <div className="card modal-content">
+                        <div className="modal-header">
+                            <h3>Add New Vehicle</h3>
+                            <button onClick={() => setIsAddingVehicle(false)} className="btn-icon"><X /></button>
+                        </div>
+                        <form onSubmit={handleAddVehicle}>
+                            <div className="input-group" style={{ position: 'relative' }} ref={dropdownRef}>
+                                <label className="input-label">Select User</label>
+                                <div style={{ position: 'relative' }}>
+                                    <input
+                                        type="text"
+                                        className="input-field"
+                                        placeholder="Search user..."
+                                        value={userSearch}
+                                        onChange={e => { setUserSearch(e.target.value); setShowUserDropdown(true); }}
+                                        onFocus={() => setShowUserDropdown(true)}
+                                        style={{ paddingRight: '2rem' }}
+                                    />
+                                    <ChevronDown size={16} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)', pointerEvents: 'none' }} />
+                                </div>
+
+                                {showUserDropdown && (
+                                    <div style={{
+                                        position: 'absolute', top: '100%', left: 0, right: 0,
+                                        maxHeight: '200px', overflowY: 'auto',
+                                        border: '1px solid var(--border)', borderRadius: '0.5rem',
+                                        background: '#1e293b', zIndex: 50,
+                                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)'
+                                    }}>
+                                        {filteredUsers.length > 0 ? (
+                                            filteredUsers.map((u: any) => (
+                                                <div
+                                                    key={u._id}
+                                                    onClick={() => selectUserForVehicle(u)}
+                                                    style={{
+                                                        padding: '0.75rem',
+                                                        cursor: 'pointer',
+                                                        background: newVehicle.userId === u._id ? 'var(--primary-light)' : 'transparent',
+                                                        borderBottom: '1px solid var(--border)',
+                                                        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                                                    }}
+                                                    className="dropdown-item"
+                                                >
+                                                    <div>
+                                                        <div style={{ fontWeight: 500 }}>{u.name}</div>
+                                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>{u.email}</div>
+                                                    </div>
+                                                    {newVehicle.userId === u._id && <Check size={16} color="var(--primary)" />}
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div style={{ padding: '0.75rem', color: 'var(--text-light)', textAlign: 'center' }}>No users found</div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="input-group">
+                                <label className="input-label">Vehicle Type</label>
+                                <select
+                                    className="input-field"
+                                    value={newVehicle.type}
+                                    onChange={e => setNewVehicle({ ...newVehicle, type: e.target.value })}
+                                >
+                                    <option value="Car">Car</option>
+                                    <option value="Bike">Bike</option>
+                                    <option value="Commercial">Commercial</option>
+                                </select>
+                            </div>
+                            <div className="input-group">
+                                <label className="input-label">Vehicle Model</label>
+                                <input
+                                    type="text"
+                                    className="input-field"
+                                    value={newVehicle.vehicleModel}
+                                    onChange={e => setNewVehicle({ ...newVehicle, vehicleModel: e.target.value })}
+                                    placeholder="e.g. Swift Dzire"
+                                    required
+                                />
+                            </div>
+                            <div className="input-group">
+                                <label className="input-label">Registration Number</label>
+                                <input
+                                    type="text"
+                                    className="input-field"
+                                    value={newVehicle.regNumber}
+                                    onChange={e => setNewVehicle({ ...newVehicle, regNumber: e.target.value })}
+                                    placeholder="e.g. TN 38 AB 1234"
+                                    required
+                                />
+                            </div>
+                            <div className="modal-actions">
+                                <button type="button" className="btn btn-outline" onClick={() => setIsAddingVehicle(false)}>Cancel</button>
+                                <button type="submit" className="btn btn-primary">Add Vehicle</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            <style jsx>{`
+                .modal-overlay {
+                    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+                    background: rgba(0,0,0,0.5); 
+                    display: flex; 
+                    justify-content: center; 
+                    align-items: center; 
+                    z-index: 1000;
+                    backdrop-filter: blur(5px);
+                }
+                .modal-content {
+                    width: 90%; 
+                    max-width: 500px; 
+                    max-height: 90vh; 
+                    overflow-y: auto;
+                    margin: auto;
+                }
+                .modal-header {
+                    display: flex; justifyContent: space-between; align-items: center; margin-bottom: 1.5rem;
+                }
+                .btn-icon {
+                    background: none; border: none; cursor: pointer; color: var(--text-light);
+                }
+                .btn-icon:hover { color: var(--text); }
+                .modal-actions {
+                    display: flex; gap: 1rem; justifyContent: flex-end; margin-top: 1.5rem;
+                }
+                .dropdown-item:hover {
+                    background: var(--bg-secondary) !important;
+                }
+            `}</style>
         </main>
     );
 }

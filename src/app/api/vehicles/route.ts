@@ -32,3 +32,24 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }
+
+export async function POST(req: Request) {
+    try {
+        await dbConnect();
+        const cookieStore = await cookies();
+        const adminToken = cookieStore.get('admin_token')?.value;
+
+        if (!adminToken || !verifyAdminToken(adminToken)) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const body = await req.json();
+        // body should contain: userId, type, vehicleModel, regNumber, details
+        const vehicle = await Vehicle.create(body);
+        await vehicle.populate('userId', 'name email phone');
+        return NextResponse.json(vehicle, { status: 201 });
+    } catch (error) {
+        console.error('Create vehicle error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+}
