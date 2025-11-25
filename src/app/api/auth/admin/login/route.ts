@@ -27,6 +27,11 @@ export async function POST(req: Request) {
 
         const response = NextResponse.json({ message: 'Login successful', admin: { email: admin.email } });
 
+        // Prevent caching
+        response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        response.headers.set('Pragma', 'no-cache');
+        response.headers.set('Expires', '0');
+
         response.cookies.set('admin_token', token, {
             httpOnly: true,
             secure: true,
