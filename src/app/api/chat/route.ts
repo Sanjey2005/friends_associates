@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import dbConnect from '@/lib/db';
 import Chat from '@/models/Chat';
+import User from '@/models/User';
 import { verifyAdminToken, verifyUserToken } from '@/lib/auth';
 
 export async function GET(req: Request) {
@@ -15,7 +16,7 @@ export async function GET(req: Request) {
 
         if (scope === 'admin') {
             if (adminToken && verifyAdminToken(adminToken)) {
-                const chats = await Chat.find().populate('userId', 'name email').sort({ lastUpdated: -1 });
+                const chats = await Chat.find().populate({ path: 'userId', model: User, select: 'name email' }).sort({ lastUpdated: -1 });
                 return NextResponse.json(chats);
             }
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

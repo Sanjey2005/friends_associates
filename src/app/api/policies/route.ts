@@ -35,8 +35,8 @@ export async function GET(req: Request) {
             }
 
             const policies = await Policy.find(query)
-                .populate('userId', 'name email phone')
-                .populate('vehicleId', 'type vehicleModel regNumber')
+                .populate({ path: 'userId', model: User, select: 'name email phone' })
+                .populate({ path: 'vehicleId', model: Vehicle, select: 'type vehicleModel regNumber' })
                 .sort({ expiryDate: 1 });
 
             // In-memory search filter if search param exists
@@ -61,7 +61,7 @@ export async function GET(req: Request) {
             if (user && typeof user !== 'string' && 'id' in user) {
                 // User: Return own policies (restricted fields)
                 const policies = await Policy.find({ userId: user.id })
-                    .populate('vehicleId', 'type vehicleModel regNumber')
+                    .populate({ path: 'vehicleId', model: Vehicle, select: 'type vehicleModel regNumber' })
                     .select('vehicleId policyLink expiryDate status'); // Only allowed fields
                 return NextResponse.json(policies);
             }
@@ -86,8 +86,8 @@ export async function POST(req: Request) {
 
         const body = await req.json();
         const policy = await Policy.create(body);
-        await policy.populate('userId', 'name email phone');
-        await policy.populate('vehicleId', 'type vehicleModel regNumber');
+        await policy.populate({ path: 'userId', model: User, select: 'name email phone' });
+        await policy.populate({ path: 'vehicleId', model: Vehicle, select: 'type vehicleModel regNumber' });
         return NextResponse.json(policy, { status: 201 });
     } catch (error) {
         console.error('Create policy error:', error);

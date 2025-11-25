@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import dbConnect from '@/lib/db';
 import Vehicle from '@/models/Vehicle';
+import User from '@/models/User';
 import { verifyAdminToken, verifyUserToken } from '@/lib/auth';
 
 export async function GET(req: Request) {
@@ -13,7 +14,7 @@ export async function GET(req: Request) {
 
         if (adminToken && verifyAdminToken(adminToken)) {
             // Admin: Return all vehicles
-            const vehicles = await Vehicle.find().populate('userId', 'name email phone');
+            const vehicles = await Vehicle.find().populate({ path: 'userId', model: User, select: 'name email phone' });
             return NextResponse.json(vehicles);
         }
 
@@ -46,7 +47,7 @@ export async function POST(req: Request) {
         const body = await req.json();
         // body should contain: userId, type, vehicleModel, regNumber, details
         const vehicle = await Vehicle.create(body);
-        await vehicle.populate('userId', 'name email phone');
+        await vehicle.populate({ path: 'userId', model: User, select: 'name email phone' });
         return NextResponse.json(vehicle, { status: 201 });
     } catch (error) {
         console.error('Create vehicle error:', error);
