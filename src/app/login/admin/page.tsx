@@ -24,7 +24,10 @@ export default function AdminLogin() {
             const res = await axios.post('/api/auth/admin/login', formData);
             if (res.status === 200) {
                 toast.success('Welcome back, Admin!');
-                router.push('/dashboard/admin');
+                // Use window.location for full page reload to ensure cookies are available
+                setTimeout(() => {
+                    window.location.href = '/dashboard/admin';
+                }, 100);
             }
         } catch (error: any) {
             toast.error(error.response?.data?.error || 'Login failed');
