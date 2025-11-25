@@ -25,13 +25,12 @@ export async function POST(req: Request) {
 
         const token = signAdminToken({ id: admin._id, email: admin.email, role: 'admin' });
 
-        const response = NextResponse.json({ message: 'Admin login successful' });
+        const response = NextResponse.json({ message: 'Login successful', admin: { email: admin.email } });
 
-        // Set separate admin cookie
         response.cookies.set('admin_token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
+            secure: true,
+            sameSite: 'none',
             maxAge: 60 * 60 * 24, // 1 day
             path: '/',
         });
