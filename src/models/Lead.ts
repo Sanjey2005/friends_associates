@@ -10,6 +10,7 @@ export interface ILead extends Document {
     regNumber?: string;
     insuranceType: string;
     additionalInfo?: string;
+    status: 'Completed' | 'Not Completed' | 'Customer Didn’t Pick';
     createdAt: Date;
 }
 
@@ -23,6 +24,11 @@ const LeadSchema: Schema = new Schema({
     regNumber: { type: String },
     insuranceType: { type: String, required: true },
     additionalInfo: { type: String },
+    status: { 
+        type: String, 
+        enum: ['Completed', 'Not Completed', 'Customer Didn’t Pick'],
+        default: 'Not Completed'
+    },
 }, { timestamps: true });
 
 const Lead: Model<ILead> = mongoose.models.Lead || mongoose.model<ILead>('Lead', LeadSchema);

@@ -14,7 +14,7 @@ export default function UserLogin() {
     const [isLogin, setIsLogin] = useState(true);
     const [loading, setLoading] = useState(false);
     const [loginData, setLoginData] = useState({
-        email: '',
+        phone: '',
         password: '',
     });
     const [registerData, setRegisterData] = useState({
@@ -51,7 +51,7 @@ export default function UserLogin() {
             if (res.status === 201) {
                 toast.success('Account created! Please check your email to verify.');
                 setIsLogin(true);
-                setLoginData({ email: registerData.email, password: '' });
+                setLoginData({ phone: registerData.phone, password: '' });
             }
         } catch (error: any) {
             toast.error(error.response?.data?.error || 'Registration failed');
@@ -134,16 +134,16 @@ export default function UserLogin() {
                     {isLogin ? (
                         <form onSubmit={handleLogin}>
                             <div className="input-group">
-                                <label className="input-label">Email Address</label>
+                                <label className="input-label">Phone Number</label>
                                 <div style={{ position: 'relative' }}>
-                                    <Mail size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
+                                    <Phone size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
                                     <input
-                                        type="email"
+                                        type="tel"
                                         className="input-field"
                                         style={{ paddingLeft: '2.5rem' }}
-                                        placeholder="john@example.com"
-                                        value={loginData.email}
-                                        onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                                        placeholder="9876543210"
+                                        value={loginData.phone}
+                                        onChange={(e) => setLoginData({ ...loginData, phone: e.target.value })}
                                         required
                                     />
                                 </div>

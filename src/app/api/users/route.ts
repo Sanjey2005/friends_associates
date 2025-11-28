@@ -28,3 +28,47 @@ export async function GET() {
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
+
+import bcrypt from 'bcryptjs';
+
+export async function POST(req: Request) {
+    try {
+        await dbConnect();
+
+        // Admin Authentication
+        const cookieStore = await cookies();
+        const token = cookieStore.get('admin_token')?.value;
+
+        if (!token || !verifyAdminToken(token)) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { name, phone, email } = await req.json();
+
+        if (!name || !phone) {
+            return NextResponse.json({ error: 'Name and Phone are required' }, { status: 400 });
+        }
+
+        // Check if phone already exists
+        const existingUser = await User.findOne({ phone });
+        if (existingUser) {
+            return NextResponse.json({ error: 'User with this phone number already exists' }, { status: 400 });
+        }
+
+        // Default password is the phone number
+        const hashedPassword = await bcrypt.hash(phone, 10);
+
+        const user = await User.create({
+            name,
+            phone,
+            email: email || undefined, // Optional
+            password: hashedPassword,
+            isVerified: true, // Admin created users are verified
+        });
+
+        return NextResponse.json({ message: 'User created successfully', user }, { status: 201 });
+    } catch (error) {
+        console.error('Create user error:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}

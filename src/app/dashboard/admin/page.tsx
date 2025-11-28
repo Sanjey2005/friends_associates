@@ -36,6 +36,8 @@ export default function AdminDashboard() {
     // New Policy/Vehicle Form Data
     const [newPolicy, setNewPolicy] = useState({ userId: '', vehicleId: '', policyLink: '', expiryDate: '', notes: '', status: 'Active' });
     const [newVehicle, setNewVehicle] = useState({ userId: '', type: 'Car', vehicleModel: '', regNumber: '', details: '' });
+    const [isCreatingUser, setIsCreatingUser] = useState(false);
+    const [newUser, setNewUser] = useState({ name: '', phone: '', email: '' });
 
     // User Search State for Modals
     const [userSearch, setUserSearch] = useState('');
@@ -166,6 +168,32 @@ export default function AdminDashboard() {
             toast.success('Vehicle added successfully');
         } catch (error: any) {
             toast.error(error.response?.data?.error || 'Failed to add vehicle');
+        }
+    };
+
+    const handleCreateUser = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const res = await axios.post('/api/users', newUser);
+            setData(prev => ({ ...prev, users: [res.data.user, ...prev.users] }));
+            setIsCreatingUser(false);
+            setNewUser({ name: '', phone: '', email: '' });
+            toast.success('User created successfully');
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || 'Failed to create user');
+        }
+    };
+
+    const handleUpdateLeadStatus = async (id: string, status: string) => {
+        try {
+            const res = await axios.put('/api/leads', { id, status });
+            setData(prev => ({
+                ...prev,
+                leads: prev.leads.map(l => l._id === id ? res.data : l)
+            }));
+            toast.success('Lead status updated');
+        } catch (error) {
+            toast.error('Failed to update status');
         }
     };
 
@@ -367,6 +395,7 @@ export default function AdminDashboard() {
                                     <th>Contact</th>
                                     <th>Vehicle</th>
                                     <th>Insurance Type</th>
+                                    <th>Status</th>
                                     <th>Date</th>
                                 </tr>
                             </thead>
@@ -380,6 +409,18 @@ export default function AdminDashboard() {
                                         </td>
                                         <td>{lead.vehicleType} - {lead.vehicleModel}</td>
                                         <td>{lead.insuranceType}</td>
+                                        <td>
+                                            <select
+                                                className="input-field"
+                                                style={{ padding: '0.25rem', fontSize: '0.9rem', width: 'auto' }}
+                                                value={lead.status || 'Not Completed'}
+                                                onChange={(e) => handleUpdateLeadStatus(lead._id, e.target.value)}
+                                            >
+                                                <option value="Not Completed">Not Completed</option>
+                                                <option value="Completed">Completed</option>
+                                                <option value="Customer Didn’t Pick">Customer Didn’t Pick</option>
+                                            </select>
+                                        </td>
                                         <td>{format(new Date(lead.createdAt), 'dd MMM yyyy')}</td>
                                     </tr>
                                 ))}
@@ -389,15 +430,22 @@ export default function AdminDashboard() {
                 )}
 
                 {activeTab === 'users' && (
-                    <div className="card table-container">
-                        <table className="table">
-                            <thead><tr><th>Name</th><th>Email</th><th>Phone</th></tr></thead>
-                            <tbody>
-                                {data.users.map((user: any) => (
-                                    <tr key={user._id}><td>{user.name}</td><td>{user.email}</td><td>{user.phone}</td></tr>
-                                ))}
-                            </tbody>
-                        </table>
+                    <div className="card">
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
+                            <button className="btn btn-primary" onClick={() => setIsCreatingUser(true)}>
+                                <Plus size={18} style={{ marginRight: '0.5rem' }} /> Create User
+                            </button>
+                        </div>
+                        <div className="table-container">
+                            <table className="table">
+                                <thead><tr><th>Name</th><th>Email</th><th>Phone</th></tr></thead>
+                                <tbody>
+                                    {data.users.map((user: any) => (
+                                        <tr key={user._id}><td>{user.name}</td><td>{user.email}</td><td>{user.phone}</td></tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 )}
 
@@ -779,6 +827,53 @@ export default function AdminDashboard() {
                             <div className="modal-actions">
                                 <button type="button" className="btn btn-outline" onClick={() => setIsAddingVehicle(false)}>Cancel</button>
                                 <button type="submit" className="btn btn-primary">Add Vehicle</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Create User Modal */}
+            {isCreatingUser && (
+                <div className="modal-overlay">
+                    <div className="card modal-content">
+                        <div className="modal-header">
+                            <h3>Create New User</h3>
+                            <button onClick={() => setIsCreatingUser(false)} className="btn-icon"><X /></button>
+                        </div>
+                        <form onSubmit={handleCreateUser}>
+                            <div className="input-group">
+                                <label className="input-label">Name</label>
+                                <input
+                                    type="text"
+                                    className="input-field"
+                                    value={newUser.name}
+                                    onChange={e => setNewUser({ ...newUser, name: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div className="input-group">
+                                <label className="input-label">Phone Number (Login ID)</label>
+                                <input
+                                    type="tel"
+                                    className="input-field"
+                                    value={newUser.phone}
+                                    onChange={e => setNewUser({ ...newUser, phone: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div className="input-group">
+                                <label className="input-label">Email (Optional)</label>
+                                <input
+                                    type="email"
+                                    className="input-field"
+                                    value={newUser.email}
+                                    onChange={e => setNewUser({ ...newUser, email: e.target.value })}
+                                />
+                            </div>
+                            <div className="modal-actions">
+                                <button type="button" className="btn btn-outline" onClick={() => setIsCreatingUser(false)}>Cancel</button>
+                                <button type="submit" className="btn btn-primary">Create User</button>
                             </div>
                         </form>
                     </div>

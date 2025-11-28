@@ -10,13 +10,13 @@ export async function POST(req: Request) {
         await dbConnect();
         const { name, email, phone, password } = await req.json();
 
-        if (!name || !email || !phone || !password) {
+        if (!name || !phone || !password) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        const existingUser = await User.findOne({ email });
+        const existingUser = await User.findOne({ phone });
         if (existingUser) {
-            return NextResponse.json({ error: 'User already exists' }, { status: 400 });
+            return NextResponse.json({ error: 'User with this phone number already exists' }, { status: 400 });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 
         const user = await User.create({
             name,
-            email,
+            email: email || undefined,
             phone,
             password: hashedPassword,
             isVerified: false,

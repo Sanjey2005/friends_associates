@@ -14,10 +14,10 @@ export interface IUser extends Document {
 }
 
 const UserSchema: Schema = new Schema({
-    email: { type: String, required: true, unique: true },
+    email: { type: String },
     password: { type: String },
     name: { type: String, required: true },
-    phone: { type: String, required: true },
+    phone: { type: String, required: true, unique: true },
     isVerified: { type: Boolean, default: false },
     verificationToken: { type: String },
     verificationTokenExpiry: { type: Date },

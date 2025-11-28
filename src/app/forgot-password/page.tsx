@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import axios from 'axios';
 import Navbar from '@/components/Navbar';
-import { Mail, ArrowRight } from 'lucide-react';
+import { Mail, ArrowRight, Phone } from 'lucide-react';
 
 export default function ForgotPasswordPage() {
-    const [email, setEmail] = useState('');
+    const [identifier, setIdentifier] = useState('');
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
 
@@ -16,7 +16,11 @@ export default function ForgotPasswordPage() {
         setMessage('');
 
         try {
-            const res = await axios.post('/api/auth/user/forgot-password', { email });
+            // Determine if input is email or phone
+            const isEmail = identifier.includes('@');
+            const payload = isEmail ? { email: identifier } : { phone: identifier };
+
+            const res = await axios.post('/api/auth/user/forgot-password', payload);
             setStatus('success');
             setMessage(res.data.message);
         } catch (error: any) {
@@ -44,20 +48,22 @@ export default function ForgotPasswordPage() {
                     ) : (
                         <form onSubmit={handleSubmit}>
                             <p style={{ marginBottom: '1.5rem', color: 'var(--text-light)', textAlign: 'center' }}>
-                                Enter your email address and we'll send you a link to reset your password.
+                                Enter your email address or phone number and we'll send you a link to reset your password.
                             </p>
 
                             <div className="input-group">
-                                <label className="input-label">Email Address</label>
+                                <label className="input-label">Email Address or Phone Number</label>
                                 <div style={{ position: 'relative' }}>
-                                    <Mail size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
+                                    <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '20px' }}>
+                                        {identifier.includes('@') || identifier === '' ? <Mail size={18} /> : <Phone size={18} />}
+                                    </div>
                                     <input
-                                        type="email"
+                                        type="text"
                                         className="input-field"
                                         style={{ paddingLeft: '2.5rem' }}
-                                        placeholder="john@example.com"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
+                                        placeholder="john@example.com or 9876543210"
+                                        value={identifier}
+                                        onChange={(e) => setIdentifier(e.target.value)}
                                         required
                                     />
                                 </div>
