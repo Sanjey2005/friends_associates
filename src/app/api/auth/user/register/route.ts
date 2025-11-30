@@ -14,6 +14,13 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{7,}$/;
+        if (!passwordRegex.test(password)) {
+            return NextResponse.json({
+                error: 'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.'
+            }, { status: 400 });
+        }
+
         const existingUser = await User.findOne({ phone });
         if (existingUser) {
             return NextResponse.json({ error: 'User with this phone number already exists' }, { status: 400 });

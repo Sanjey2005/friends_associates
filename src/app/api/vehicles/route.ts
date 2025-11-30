@@ -12,7 +12,10 @@ export async function GET(req: Request) {
         const adminToken = cookieStore.get('admin_token')?.value;
         const userToken = cookieStore.get('token')?.value;
 
-        if (adminToken && verifyAdminToken(adminToken)) {
+        const { searchParams } = new URL(req.url);
+        const scope = searchParams.get('scope');
+
+        if (scope === 'admin' && adminToken && verifyAdminToken(adminToken)) {
             // Admin: Return all vehicles
             const vehicles = await Vehicle.find().populate({ path: 'userId', model: User, select: 'name email phone' });
             return NextResponse.json(vehicles);

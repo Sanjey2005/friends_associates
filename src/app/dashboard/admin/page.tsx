@@ -52,9 +52,9 @@ export default function AdminDashboard() {
     const fetchData = async () => {
         try {
             const [policiesRes, leadsRes, vehiclesRes, usersRes, chatsRes] = await Promise.all([
-                axios.get('/api/policies', { withCredentials: true }),
+                axios.get('/api/policies?scope=admin', { withCredentials: true }),
                 axios.get('/api/leads', { withCredentials: true }),
-                axios.get('/api/vehicles', { withCredentials: true }),
+                axios.get('/api/vehicles?scope=admin', { withCredentials: true }),
                 axios.get('/api/users', { withCredentials: true }),
                 axios.get('/api/chat?scope=admin', { withCredentials: true }),
             ]);

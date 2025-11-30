@@ -13,9 +13,11 @@ export async function GET(req: Request) {
         const adminToken = cookieStore.get('admin_token')?.value;
         const userToken = cookieStore.get('token')?.value;
 
-        if (adminToken && verifyAdminToken(adminToken)) {
+        const { searchParams } = new URL(req.url);
+        const scope = searchParams.get('scope');
+
+        if (scope === 'admin' && adminToken && verifyAdminToken(adminToken)) {
             // Admin: Return all policies with filters
-            const { searchParams } = new URL(req.url);
             const expiryFilter = searchParams.get('expiry'); // 'active', 'expired', 'soon'
             const search = searchParams.get('search');
 
