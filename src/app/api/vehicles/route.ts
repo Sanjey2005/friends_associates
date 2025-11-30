@@ -48,7 +48,13 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json();
-        // body should contain: userId, type, vehicleModel, regNumber, details
+
+        // Sanitize regNumber: Remove all spaces
+        if (body.regNumber) {
+            body.regNumber = body.regNumber.replace(/\s+/g, '');
+        }
+
+        // body should contain: userId, type, vehicleModel, regNumber, details, boardType
         const vehicle = await Vehicle.create(body);
         await vehicle.populate({ path: 'userId', model: User, select: 'name email phone' });
         return NextResponse.json(vehicle, { status: 201 });

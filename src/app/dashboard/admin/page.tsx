@@ -35,8 +35,9 @@ export default function AdminDashboard() {
 
     // New Policy/Vehicle Form Data
     const [newPolicy, setNewPolicy] = useState({ userId: '', vehicleId: '', policyLink: '', expiryDate: '', notes: '', status: 'Active' });
-    const [newVehicle, setNewVehicle] = useState({ userId: '', type: 'Car', vehicleModel: '', regNumber: '', details: '' });
+    const [newVehicle, setNewVehicle] = useState({ userId: '', type: 'Car', vehicleModel: '', regNumber: '', details: '', boardType: 'Own Board' });
     const [isCreatingUser, setIsCreatingUser] = useState(false);
+    const [editingUser, setEditingUser] = useState<any>(null);
     const [newUser, setNewUser] = useState({ name: '', phone: '', email: '' });
 
     // User Search State for Modals
@@ -160,10 +161,16 @@ export default function AdminDashboard() {
     const handleAddVehicle = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const res = await axios.post('/api/vehicles', newVehicle);
+            // Sanitize regNumber locally as well
+            const sanitizedVehicle = {
+                ...newVehicle,
+                regNumber: newVehicle.regNumber.replace(/\s+/g, '')
+            };
+
+            const res = await axios.post('/api/vehicles', sanitizedVehicle);
             setData(prev => ({ ...prev, vehicles: [...prev.vehicles, res.data] }));
             setIsAddingVehicle(false);
-            setNewVehicle({ userId: '', type: 'Car', vehicleModel: '', regNumber: '', details: '' });
+            setNewVehicle({ userId: '', type: 'Car', vehicleModel: '', regNumber: '', details: '', boardType: 'Own Board' });
             setUserSearch('');
             toast.success('Vehicle added successfully');
         } catch (error: any) {
@@ -181,6 +188,35 @@ export default function AdminDashboard() {
             toast.success('User created successfully');
         } catch (error: any) {
             toast.error(error.response?.data?.error || 'Failed to create user');
+        }
+    };
+
+    const handleUpdateUser = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const res = await axios.put('/api/users', editingUser);
+            setData(prev => ({
+                ...prev,
+                users: prev.users.map(u => u._id === editingUser._id ? res.data : u)
+            }));
+            setEditingUser(null);
+            toast.success('User updated successfully');
+        } catch (error: any) {
+            toast.error(error.response?.data?.error || 'Failed to update user');
+        }
+    };
+
+    const handleDeleteUser = async (id: string) => {
+        if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
+        try {
+            await axios.delete(`/api/users?id=${id}`);
+            setData(prev => ({
+                ...prev,
+                users: prev.users.filter(u => u._id !== id)
+            }));
+            toast.success('User deleted successfully');
+        } catch (error) {
+            toast.error('Failed to delete user');
         }
     };
 
@@ -431,17 +467,44 @@ export default function AdminDashboard() {
 
                 {activeTab === 'users' && (
                     <div className="card">
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                            <div className="input-group" style={{ marginBottom: 0, flex: 1, minWidth: '200px', maxWidth: '400px' }}>
+                                <div style={{ position: 'relative' }}>
+                                    <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-light)' }} />
+                                    <input
+                                        type="text"
+                                        placeholder="Search by name or phone..."
+                                        className="input-field"
+                                        style={{ paddingLeft: '2.5rem' }}
+                                        value={userSearch}
+                                        onChange={e => setUserSearch(e.target.value)}
+                                    />
+                                </div>
+                            </div>
                             <button className="btn btn-primary" onClick={() => setIsCreatingUser(true)}>
                                 <Plus size={18} style={{ marginRight: '0.5rem' }} /> Create User
                             </button>
                         </div>
                         <div className="table-container">
                             <table className="table">
-                                <thead><tr><th>Name</th><th>Email</th><th>Phone</th></tr></thead>
+                                <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Actions</th></tr></thead>
                                 <tbody>
-                                    {data.users.map((user: any) => (
-                                        <tr key={user._id}><td>{user.name}</td><td>{user.email}</td><td>{user.phone}</td></tr>
+                                    {filteredUsers.map((user: any) => (
+                                        <tr key={user._id}>
+                                            <td>{user.name}</td>
+                                            <td>{user.email}</td>
+                                            <td>{user.phone}</td>
+                                            <td>
+                                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                    <button className="btn btn-outline" style={{ padding: '0.5rem' }} onClick={() => setEditingUser(user)}>
+                                                        <Edit size={16} />
+                                                    </button>
+                                                    <button className="btn btn-outline" style={{ padding: '0.5rem', color: 'var(--error)', borderColor: 'var(--error)' }} onClick={() => handleDeleteUser(user._id)}>
+                                                        <div style={{ color: 'var(--error)' }}><X size={16} /></div>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
                                     ))}
                                 </tbody>
                             </table>
@@ -458,7 +521,7 @@ export default function AdminDashboard() {
                         </div>
                         <div className="table-container">
                             <table className="table">
-                                <thead><tr><th>Owner</th><th>Type</th><th>Model</th><th>Reg Number</th></tr></thead>
+                                <thead><tr><th>Owner</th><th>Type</th><th>Model</th><th>Reg Number</th><th>Board</th></tr></thead>
                                 <tbody>
                                     {data.vehicles.map((v: any) => (
                                         <tr key={v._id}>
@@ -466,6 +529,7 @@ export default function AdminDashboard() {
                                             <td>{v.type}</td>
                                             <td>{v.vehicleModel}</td>
                                             <td>{v.regNumber}</td>
+                                            <td>{v.type === 'Car' ? (v.boardType || 'Own Board') : '-'}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -802,6 +866,21 @@ export default function AdminDashboard() {
                                     <option value="Commercial">Commercial</option>
                                 </select>
                             </div>
+
+                            {newVehicle.type === 'Car' && (
+                                <div className="input-group">
+                                    <label className="input-label">Board Type</label>
+                                    <select
+                                        className="input-field"
+                                        value={newVehicle.boardType}
+                                        onChange={e => setNewVehicle({ ...newVehicle, boardType: e.target.value })}
+                                    >
+                                        <option value="Own Board">Own Board</option>
+                                        <option value="T Board">T Board</option>
+                                    </select>
+                                </div>
+                            )}
+
                             <div className="input-group">
                                 <label className="input-label">Vehicle Model</label>
                                 <input
@@ -874,6 +953,53 @@ export default function AdminDashboard() {
                             <div className="modal-actions">
                                 <button type="button" className="btn btn-outline" onClick={() => setIsCreatingUser(false)}>Cancel</button>
                                 <button type="submit" className="btn btn-primary">Create User</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit User Modal */}
+            {editingUser && (
+                <div className="modal-overlay">
+                    <div className="card modal-content">
+                        <div className="modal-header">
+                            <h3>Edit User</h3>
+                            <button onClick={() => setEditingUser(null)} className="btn-icon"><X /></button>
+                        </div>
+                        <form onSubmit={handleUpdateUser}>
+                            <div className="input-group">
+                                <label className="input-label">Name</label>
+                                <input
+                                    type="text"
+                                    className="input-field"
+                                    value={editingUser.name}
+                                    onChange={e => setEditingUser({ ...editingUser, name: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div className="input-group">
+                                <label className="input-label">Phone Number</label>
+                                <input
+                                    type="tel"
+                                    className="input-field"
+                                    value={editingUser.phone}
+                                    onChange={e => setEditingUser({ ...editingUser, phone: e.target.value })}
+                                    required
+                                />
+                            </div>
+                            <div className="input-group">
+                                <label className="input-label">Email</label>
+                                <input
+                                    type="email"
+                                    className="input-field"
+                                    value={editingUser.email || ''}
+                                    onChange={e => setEditingUser({ ...editingUser, email: e.target.value })}
+                                />
+                            </div>
+                            <div className="modal-actions">
+                                <button type="button" className="btn btn-outline" onClick={() => setEditingUser(null)}>Cancel</button>
+                                <button type="submit" className="btn btn-primary">Save Changes</button>
                             </div>
                         </form>
                     </div>

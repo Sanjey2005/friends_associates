@@ -72,3 +72,72 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
+
+export async function PUT(req: Request) {
+    try {
+        await dbConnect();
+        const cookieStore = await cookies();
+        const token = cookieStore.get('admin_token')?.value;
+
+        if (!token || !verifyAdminToken(token)) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { id, name, phone, email } = await req.json();
+
+        if (!id || !name || !phone) {
+            return NextResponse.json({ error: 'ID, Name and Phone are required' }, { status: 400 });
+        }
+
+        // Check if phone exists for OTHER users
+        const existingUser = await User.findOne({ phone, _id: { $ne: id } });
+        if (existingUser) {
+            return NextResponse.json({ error: 'Phone number already in use by another user' }, { status: 400 });
+        }
+
+        const user = await User.findByIdAndUpdate(
+            id,
+            { name, phone, email: email || undefined },
+            { new: true }
+        ).select('-password');
+
+        if (!user) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+
+        return NextResponse.json(user);
+    } catch (error) {
+        console.error('Update user error:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
+
+export async function DELETE(req: Request) {
+    try {
+        await dbConnect();
+        const cookieStore = await cookies();
+        const token = cookieStore.get('admin_token')?.value;
+
+        if (!token || !verifyAdminToken(token)) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { searchParams } = new URL(req.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return NextResponse.json({ error: 'User ID required' }, { status: 400 });
+        }
+
+        const user = await User.findByIdAndDelete(id);
+
+        if (!user) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+
+        return NextResponse.json({ message: 'User deleted successfully' });
+    } catch (error) {
+        console.error('Delete user error:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
