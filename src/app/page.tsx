@@ -117,17 +117,17 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features — Near Black chapter */}
+      {/* Features — adaptive surface */}
       <section
         style={{
           padding: '6rem 1.5rem',
-          background: 'var(--color-near-black)',
-          color: 'var(--color-text-on-dark)',
+          background: 'var(--color-ivory)',
+          color: 'var(--color-text)',
         }}
       >
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: '4rem', maxWidth: '720px', margin: '0 auto 4rem' }}>
-            <div className="eyebrow" style={{ color: 'var(--color-coral)', marginBottom: '1rem' }}>
+            <div className="eyebrow" style={{ color: 'var(--color-terracotta)', marginBottom: '1rem' }}>
               Why Friends Associates
             </div>
             <h2
@@ -136,7 +136,7 @@ export default function Home() {
                 fontSize: 'clamp(2rem, 4.5vw, 3.25rem)',
                 fontWeight: 500,
                 lineHeight: 1.15,
-                color: 'var(--color-ivory)',
+                color: 'var(--color-text)',
                 marginBottom: '1rem',
                 letterSpacing: '-0.01em',
               }}
@@ -145,7 +145,7 @@ export default function Home() {
             </h2>
             <p
               style={{
-                color: 'var(--color-text-on-dark)',
+                color: 'var(--color-text-secondary)',
                 fontSize: '1.125rem',
                 lineHeight: 1.6,
               }}
@@ -167,8 +167,8 @@ export default function Home() {
                 key={index}
                 className="fade-in-up"
                 style={{
-                  background: 'var(--color-dark-surface)',
-                  border: '1px solid var(--color-border-dark)',
+                  background: 'var(--color-parchment)',
+                  border: '1px solid var(--color-border)',
                   borderRadius: 'var(--radius-lg)',
                   padding: '2rem',
                   animationDelay: `${index * 0.06}s`,
@@ -179,8 +179,8 @@ export default function Home() {
                     width: '48px',
                     height: '48px',
                     borderRadius: '12px',
-                    background: 'rgba(217, 119, 87, 0.12)',
-                    color: 'var(--color-coral)',
+                    background: 'rgba(201, 100, 66, 0.12)',
+                    color: 'var(--color-terracotta)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -195,7 +195,7 @@ export default function Home() {
                     fontSize: '1.375rem',
                     fontWeight: 500,
                     marginBottom: '0.625rem',
-                    color: 'var(--color-ivory)',
+                    color: 'var(--color-text)',
                     lineHeight: 1.25,
                   }}
                 >
@@ -203,7 +203,7 @@ export default function Home() {
                 </h3>
                 <p
                   style={{
-                    color: 'var(--color-text-on-dark)',
+                    color: 'var(--color-text-secondary)',
                     lineHeight: 1.6,
                     fontSize: '0.95rem',
                   }}
@@ -217,10 +217,8 @@ export default function Home() {
           <div style={{ textAlign: 'center', marginTop: '4rem' }}>
             <Link
               href="/services"
-              className="btn"
+              className="btn btn-primary"
               style={{
-                background: 'var(--color-ivory)',
-                color: 'var(--color-near-black)',
                 padding: '0.875rem 1.75rem',
                 fontSize: '1rem',
               }}

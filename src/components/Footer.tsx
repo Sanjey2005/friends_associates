@@ -4,10 +4,10 @@ export default function Footer() {
     return (
         <footer
             style={{
-                background: 'var(--color-near-black)',
-                color: 'var(--color-text-on-dark)',
+                background: 'var(--color-ivory)',
+                color: 'var(--color-text-secondary)',
                 padding: '4rem 1rem 3rem',
-                borderTop: '1px solid var(--color-border-dark)',
+                borderTop: '1px solid var(--color-border)',
                 marginTop: 'auto',
             }}
         >
@@ -17,7 +17,7 @@ export default function Footer() {
                         fontFamily: 'var(--font-serif)',
                         fontSize: '2rem',
                         fontWeight: 500,
-                        color: 'var(--color-ivory)',
+                        color: 'var(--color-text)',
                         marginBottom: '2rem',
                         letterSpacing: '-0.01em',
                     }}
@@ -41,7 +41,7 @@ export default function Footer() {
                             gap: '0.5rem',
                         }}
                     >
-                        <User size={18} style={{ color: 'var(--color-coral)' }} />
+                        <User size={18} style={{ color: 'var(--color-terracotta)' }} />
                         <span>Ethiraj R</span>
                     </div>
                     <div
@@ -51,7 +51,7 @@ export default function Footer() {
                             gap: '0.5rem',
                         }}
                     >
-                        <Phone size={18} style={{ color: 'var(--color-coral)' }} />
+                        <Phone size={18} style={{ color: 'var(--color-terracotta)' }} />
                         <span>8220016649, 82200166649</span>
                     </div>
                 </div>
@@ -71,7 +71,7 @@ export default function Footer() {
                 >
                     <MapPin
                         size={18}
-                        style={{ flexShrink: 0, marginTop: '3px', color: 'var(--color-coral)' }}
+                        style={{ flexShrink: 0, marginTop: '3px', color: 'var(--color-terracotta)' }}
                     />
                     <span>
                         Ho.187 Raju Naidu street, Dr Radhakrishna St, near Omni Bus stand,
@@ -81,7 +81,7 @@ export default function Footer() {
 
                 <div
                     style={{
-                        borderTop: '1px solid var(--color-dark-surface)',
+                        borderTop: '1px solid var(--color-border)',
                         paddingTop: '1.5rem',
                         fontSize: '0.9rem',
                         color: 'var(--color-text-tertiary)',
