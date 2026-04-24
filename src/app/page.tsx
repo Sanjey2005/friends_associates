@@ -2,6 +2,7 @@ import Navbar from '@/components/Navbar';
 import QuoteForm from '@/components/QuoteForm';
 import Footer from '@/components/Footer';
 import AnimatedHero from '@/components/AnimatedHero';
+import PartnersCarousel from '@/components/PartnersCarousel';
 import Link from 'next/link';
 import { Shield, Clock, Award, Wallet, ArrowRight } from 'lucide-react';
 
@@ -147,6 +148,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <PartnersCarousel />
 
       {/* Quote Form — Parchment */}
       <section
