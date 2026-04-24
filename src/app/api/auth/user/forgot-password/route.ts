@@ -3,15 +3,30 @@ import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import crypto from 'crypto';
 import { sendEmail } from '@/lib/email';
+import { forgotPasswordSchema, parseBody } from '@/lib/validations';
+import { rateLimit, getClientIp, FORGOT_PASSWORD_LIMIT } from '@/lib/rate-limit';
 
 export async function POST(req: Request) {
     try {
-        await dbConnect();
-        const { email, phone } = await req.json();
-
-        if (!email && !phone) {
-            return NextResponse.json({ error: 'Email or Phone is required' }, { status: 400 });
+        // Rate limiting
+        const ip = getClientIp(req);
+        const rl = rateLimit(`forgot-pass:${ip}`, FORGOT_PASSWORD_LIMIT);
+        if (!rl.allowed) {
+            return NextResponse.json(
+                { error: `Too many attempts. Try again in ${rl.retryAfterSeconds} seconds.` },
+                { status: 429 }
+            );
         }
+
+        await dbConnect();
+        const raw = await req.json();
+
+        // Validate input
+        const parsed = parseBody(forgotPasswordSchema, raw);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
+        }
+        const { email, phone } = parsed.data;
 
         let user;
         if (email) {

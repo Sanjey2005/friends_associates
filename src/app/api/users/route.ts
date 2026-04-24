@@ -3,6 +3,8 @@ import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import { cookies } from 'next/headers';
 import { verifyAdminToken } from '@/lib/auth';
+import { createUserSchema, updateUserSchema, deleteUserSchema, parseBody } from '@/lib/validations';
+import bcrypt from 'bcryptjs';
 
 export async function GET() {
     await dbConnect();
@@ -29,8 +31,6 @@ export async function GET() {
     }
 }
 
-import bcrypt from 'bcryptjs';
-
 export async function POST(req: Request) {
     try {
         await dbConnect();
@@ -43,11 +43,14 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { name, phone, email } = await req.json();
+        const raw = await req.json();
 
-        if (!name || !phone) {
-            return NextResponse.json({ error: 'Name and Phone are required' }, { status: 400 });
+        // Validate input
+        const parsed = parseBody(createUserSchema, raw);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
+        const { name, phone, email } = parsed.data;
 
         // Check if phone already exists
         const existingUser = await User.findOne({ phone });
@@ -83,10 +86,19 @@ export async function PUT(req: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { id, name, phone, email } = await req.json();
+        const raw = await req.json();
 
-        if (!id || !name || !phone) {
-            return NextResponse.json({ error: 'ID, Name and Phone are required' }, { status: 400 });
+        // Validate input
+        const parsed = parseBody(updateUserSchema, raw);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
+        }
+        // Use _id if id is not present (frontend sends _id)
+        const id = parsed.data.id || parsed.data._id;
+        const { name, phone, email } = parsed.data;
+
+        if (!id) {
+            return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
         }
 
         // Check if phone exists for OTHER users
@@ -127,6 +139,12 @@ export async function DELETE(req: Request) {
 
         if (!id) {
             return NextResponse.json({ error: 'User ID required' }, { status: 400 });
+        }
+
+        // Validate ID format
+        const parsed = parseBody(deleteUserSchema, { id });
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
 
         const user = await User.findByIdAndDelete(id);

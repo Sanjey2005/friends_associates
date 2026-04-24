@@ -8,7 +8,7 @@ if (!JWT_SECRET_USER || !JWT_SECRET_ADMIN) {
 }
 
 export const signUserToken = (payload: any) => {
-    return jwt.sign(payload, JWT_SECRET_USER, { expiresIn: '7d' });
+    return jwt.sign(payload, JWT_SECRET_USER, { expiresIn: '1d' });
 };
 
 export const verifyUserToken = (token: string) => {

@@ -18,6 +18,11 @@ const PolicySchema: Schema = new Schema({
     status: { type: String, enum: ['Active', 'Expired', 'Expiring Soon'], default: 'Active' },
 }, { timestamps: true });
 
+// Indexes for common query patterns
+PolicySchema.index({ userId: 1 });
+PolicySchema.index({ expiryDate: 1 });
+PolicySchema.index({ userId: 1, expiryDate: 1 });
+
 const Policy: Model<IPolicy> = mongoose.models.Policy || mongoose.model<IPolicy>('Policy', PolicySchema);
 
 export default Policy;

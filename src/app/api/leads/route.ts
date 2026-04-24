@@ -3,19 +3,31 @@ import { cookies } from 'next/headers';
 import dbConnect from '@/lib/db';
 import Lead from '@/models/Lead';
 import { verifyAdminToken } from '@/lib/auth';
+import { createLeadSchema, updateLeadSchema, parseBody } from '@/lib/validations';
+import { rateLimit, getClientIp, LEAD_SUBMIT_LIMIT } from '@/lib/rate-limit';
 
 export async function POST(req: Request) {
     try {
-        await dbConnect();
-        const body = await req.json();
-
-        // Validate required fields
-        const { name, email, phone, vehicleType, insuranceType } = body;
-        if (!name || !email || !phone || !vehicleType || !insuranceType) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        // Rate limiting — quote form is public
+        const ip = getClientIp(req);
+        const rl = rateLimit(`lead:${ip}`, LEAD_SUBMIT_LIMIT);
+        if (!rl.allowed) {
+            return NextResponse.json(
+                { error: `Too many submissions. Try again in ${rl.retryAfterSeconds} seconds.` },
+                { status: 429 }
+            );
         }
 
-        const lead = await Lead.create(body);
+        await dbConnect();
+        const raw = await req.json();
+
+        // Validate input — only whitelisted fields
+        const parsed = parseBody(createLeadSchema, raw);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
+        }
+
+        const lead = await Lead.create(parsed.data);
         return NextResponse.json({ message: 'Quote submitted successfully', lead }, { status: 201 });
     } catch (error) {
         console.error('Lead submission error:', error);
@@ -55,11 +67,14 @@ export async function PUT(req: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { id, status } = await req.json();
+        const raw = await req.json();
 
-        if (!id || !status) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        // Validate input
+        const parsed = parseBody(updateLeadSchema, raw);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
+        const { id, status } = parsed.data;
 
         const lead = await Lead.findByIdAndUpdate(id, { status }, { new: true });
 

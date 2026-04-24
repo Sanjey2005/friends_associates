@@ -4,22 +4,30 @@ import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import crypto from 'crypto';
 import { sendEmail } from '@/lib/email';
+import { registerSchema, parseBody } from '@/lib/validations';
+import { rateLimit, getClientIp, REGISTER_LIMIT } from '@/lib/rate-limit';
 
 export async function POST(req: Request) {
     try {
+        // Rate limiting
+        const ip = getClientIp(req);
+        const rl = rateLimit(`register:${ip}`, REGISTER_LIMIT);
+        if (!rl.allowed) {
+            return NextResponse.json(
+                { error: `Too many registration attempts. Try again in ${rl.retryAfterSeconds} seconds.` },
+                { status: 429 }
+            );
+        }
+
         await dbConnect();
-        const { name, email, phone, password } = await req.json();
+        const raw = await req.json();
 
-        if (!name || !phone || !password) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        // Validate input
+        const parsed = parseBody(registerSchema, raw);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
-
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{7,}$/;
-        if (!passwordRegex.test(password)) {
-            return NextResponse.json({
-                error: 'Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.'
-            }, { status: 400 });
-        }
+        const { name, email, phone, password } = parsed.data;
 
         const existingUser = await User.findOne({ phone });
         if (existingUser) {
@@ -40,18 +48,19 @@ export async function POST(req: Request) {
             verificationTokenExpiry
         });
 
-        const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${verificationToken}`;
-
-        await sendEmail(
-            email,
-            'Verify your email - Friends Associates',
-            `
-                <h1>Welcome to Friends Associates</h1>
-                <p>Please click the link below to verify your email address:</p>
-                <a href="${verifyUrl}">${verifyUrl}</a>
-                <p>This link will expire in 24 hours.</p>
-            `
-        );
+        if (email) {
+            const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${verificationToken}`;
+            await sendEmail(
+                email,
+                'Verify your email - Friends Associates',
+                `
+                    <h1>Welcome to Friends Associates</h1>
+                    <p>Please click the link below to verify your email address:</p>
+                    <a href="${verifyUrl}">${verifyUrl}</a>
+                    <p>This link will expire in 24 hours.</p>
+                `
+            );
+        }
 
         return NextResponse.json({ message: 'User registered successfully. Please check your email to verify your account.' }, { status: 201 });
     } catch (error) {

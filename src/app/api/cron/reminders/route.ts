@@ -10,12 +10,11 @@ export async function GET(req: Request) {
     try {
         await dbConnect();
 
-        // Simple security check
+        // Security check — require CRON_SECRET in production
         const { searchParams } = new URL(req.url);
         const key = searchParams.get('key');
-        if (key !== process.env.CRON_SECRET && process.env.NODE_ENV === 'production') {
-            // Allow without key in dev for testing, or require it.
-            // return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        if (process.env.NODE_ENV === 'production' && key !== process.env.CRON_SECRET) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         const today = new Date();

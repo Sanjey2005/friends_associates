@@ -14,7 +14,7 @@ export interface IUser extends Document {
 }
 
 const UserSchema: Schema = new Schema({
-    email: { type: String },
+    email: { type: String, sparse: true, index: true },
     password: { type: String },
     name: { type: String, required: true },
     phone: { type: String, required: true, unique: true },
@@ -24,6 +24,11 @@ const UserSchema: Schema = new Schema({
     resetPasswordToken: { type: String },
     resetPasswordTokenExpiry: { type: Date },
 }, { timestamps: true });
+
+// Index for password reset lookups
+UserSchema.index({ resetPasswordToken: 1 });
+// Index for email verification lookups
+UserSchema.index({ verificationToken: 1 });
 
 const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
 

@@ -4,6 +4,7 @@ import dbConnect from '@/lib/db';
 import Vehicle from '@/models/Vehicle';
 import User from '@/models/User';
 import { verifyAdminToken, verifyUserToken } from '@/lib/auth';
+import { createVehicleSchema, parseBody } from '@/lib/validations';
 
 export async function GET(req: Request) {
     try {
@@ -47,15 +48,20 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const body = await req.json();
+        const raw = await req.json();
 
-        // Sanitize regNumber: Remove all spaces
-        if (body.regNumber) {
-            body.regNumber = body.regNumber.replace(/\s+/g, '');
+        // Validate input — only whitelisted fields
+        const parsed = parseBody(createVehicleSchema, raw);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
 
-        // body should contain: userId, type, vehicleModel, regNumber, details, boardType
-        const vehicle = await Vehicle.create(body);
+        const validData = parsed.data;
+
+        // Sanitize regNumber: Remove all spaces
+        validData.regNumber = validData.regNumber.replace(/\s+/g, '');
+
+        const vehicle = await Vehicle.create(validData);
         await vehicle.populate({ path: 'userId', model: User, select: 'name email phone' });
         return NextResponse.json(vehicle, { status: 201 });
     } catch (error) {

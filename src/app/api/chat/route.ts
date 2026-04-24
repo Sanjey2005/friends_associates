@@ -4,6 +4,8 @@ import dbConnect from '@/lib/db';
 import Chat from '@/models/Chat';
 import User from '@/models/User';
 import { verifyAdminToken, verifyUserToken } from '@/lib/auth';
+import { chatMessageSchema, parseBody } from '@/lib/validations';
+import { rateLimit, getClientIp, CHAT_LIMIT } from '@/lib/rate-limit';
 
 export async function GET(req: Request) {
     try {
@@ -43,84 +45,74 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
     try {
+        // Rate limiting
+        const ip = getClientIp(req);
+        const rl = rateLimit(`chat:${ip}`, CHAT_LIMIT);
+        if (!rl.allowed) {
+            return NextResponse.json(
+                { error: `Too many messages. Try again in ${rl.retryAfterSeconds} seconds.` },
+                { status: 429 }
+            );
+        }
+
         await dbConnect();
         const cookieStore = await cookies();
         const adminToken = cookieStore.get('admin_token')?.value;
         const userToken = cookieStore.get('token')?.value;
 
-        console.log('=== Chat POST Request ===');
-        console.log('Admin token exists:', !!adminToken);
-        console.log('User token exists:', !!userToken);
-
         let body;
         try {
             body = await req.json();
-            console.log('Request body:', JSON.stringify(body));
         } catch (parseError) {
-            console.error('Failed to parse request body:', parseError);
             return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
         }
 
-        const { text, userId } = body;
-        const trimmedText = typeof text === 'string' ? text.trim() : '';
-
-        if (!trimmedText) {
-            console.log('Error: Message text is invalid:', text);
-            return NextResponse.json({ error: 'Message text is required and must be a non-empty string' }, { status: 400 });
+        // Validate input
+        const parsed = parseBody(chatMessageSchema, body);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
+        const { text, userId } = parsed.data;
 
         const isAdminMessage = Boolean(userId);
 
         if (!isAdminMessage && userToken) {
-            console.log('Verifying user token...');
             const user = verifyUserToken(userToken);
-            console.log('User verification result:', user ? 'valid' : 'invalid');
 
             if (user && typeof user !== 'string' && 'id' in user) {
-                console.log('User sending message. User ID:', user.id);
                 const chat = await Chat.findOneAndUpdate(
                     { userId: user.id },
                     {
-                        $push: { messages: { sender: 'user', text: trimmedText, timestamp: new Date() } },
+                        $push: { messages: { sender: 'user', text, timestamp: new Date() } },
                         $set: { lastUpdated: new Date() }
                     },
                     { new: true, upsert: true }
                 );
-                console.log('User message sent successfully. Chat ID:', chat._id);
                 return NextResponse.json(chat);
             }
 
-            console.log('Error: Invalid user token structure');
             return NextResponse.json({ error: 'Invalid authentication token' }, { status: 401 });
         }
 
         if (isAdminMessage) {
             if (!adminToken || !verifyAdminToken(adminToken)) {
-                console.log('Error: Admin message without valid admin token');
                 return NextResponse.json({ error: 'Admin authentication required' }, { status: 401 });
             }
 
-            console.log('Admin sending message to user:', userId);
             const chat = await Chat.findOneAndUpdate(
                 { userId },
                 {
-                    $push: { messages: { sender: 'admin', text: trimmedText, timestamp: new Date() } },
+                    $push: { messages: { sender: 'admin', text, timestamp: new Date() } },
                     $set: { lastUpdated: new Date() }
                 },
                 { new: true, upsert: true }
             );
-            console.log('Admin message sent successfully');
             return NextResponse.json(chat);
         }
 
-        console.log('Error: No valid authentication token found');
         return NextResponse.json({ error: 'No authentication token provided' }, { status: 401 });
     } catch (error: any) {
         console.error('Send message error:', error);
-        console.error('Error stack:', error.stack);
-        return NextResponse.json({
-            error: 'Internal server error',
-            details: error.message
-        }, { status: 500 });
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

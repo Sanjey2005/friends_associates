@@ -5,6 +5,7 @@ import Policy from '@/models/Policy';
 import Vehicle from '@/models/Vehicle';
 import User from '@/models/User';
 import { verifyAdminToken, verifyUserToken } from '@/lib/auth';
+import { createPolicySchema, updatePolicySchema, parseBody } from '@/lib/validations';
 
 export async function GET(req: Request) {
     try {
@@ -86,8 +87,15 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const body = await req.json();
-        const policy = await Policy.create(body);
+        const raw = await req.json();
+
+        // Validate input — only whitelisted fields are accepted
+        const parsed = parseBody(createPolicySchema, raw);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
+        }
+
+        const policy = await Policy.create(parsed.data);
         await policy.populate({ path: 'userId', model: User, select: 'name email phone' });
         await policy.populate({ path: 'vehicleId', model: Vehicle, select: 'type vehicleModel regNumber' });
         return NextResponse.json(policy, { status: 201 });
@@ -107,12 +115,14 @@ export async function PUT(req: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const body = await req.json();
-        const { id, policyLink, expiryDate, notes } = body;
+        const raw = await req.json();
 
-        if (!id) {
-            return NextResponse.json({ error: 'Policy ID required' }, { status: 400 });
+        // Validate input — only whitelisted fields are accepted
+        const parsed = parseBody(updatePolicySchema, raw);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
+        const { id, policyLink, expiryDate, notes } = parsed.data;
 
         const updateData: any = {};
         if (policyLink !== undefined) updateData.policyLink = policyLink;

@@ -18,6 +18,10 @@ const VehicleSchema: Schema = new Schema({
     details: { type: Schema.Types.Mixed },
 }, { timestamps: true });
 
+// Indexes
+VehicleSchema.index({ userId: 1 });
+VehicleSchema.index({ regNumber: 1 }, { unique: true });
+
 const Vehicle: Model<IVehicle> = mongoose.models.Vehicle || mongoose.model<IVehicle>('Vehicle', VehicleSchema);
 
 export default Vehicle;

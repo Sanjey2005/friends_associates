@@ -1,15 +1,19 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
+import { verifyEmailSchema, parseBody } from '@/lib/validations';
 
 export async function POST(req: Request) {
     try {
         await dbConnect();
-        const { token } = await req.json();
+        const raw = await req.json();
 
-        if (!token) {
-            return NextResponse.json({ error: 'Token is required' }, { status: 400 });
+        // Validate input
+        const parsed = parseBody(verifyEmailSchema, raw);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
+        const { token } = parsed.data;
 
         const user = await User.findOne({
             verificationToken: token,

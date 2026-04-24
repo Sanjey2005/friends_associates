@@ -2,15 +2,19 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
+import { resetPasswordSchema, parseBody } from '@/lib/validations';
 
 export async function POST(req: Request) {
     try {
         await dbConnect();
-        const { token, password } = await req.json();
+        const raw = await req.json();
 
-        if (!token || !password) {
-            return NextResponse.json({ error: 'Token and password are required' }, { status: 400 });
+        // Validate input
+        const parsed = parseBody(resetPasswordSchema, raw);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
+        const { token, password } = parsed.data;
 
         const user = await User.findOne({
             resetPasswordToken: token,

@@ -3,15 +3,31 @@ import bcrypt from 'bcryptjs';
 import dbConnect from '@/lib/db';
 import Admin from '@/models/Admin';
 import { signAdminToken } from '@/lib/auth';
+import { adminLoginSchema, parseBody } from '@/lib/validations';
+import { rateLimit, getClientIp, LOGIN_LIMIT } from '@/lib/rate-limit';
+import { ADMIN_COOKIE_OPTIONS, COOKIE_NAMES } from '@/lib/cookies';
 
 export async function POST(req: Request) {
     try {
-        await dbConnect();
-        const { email, password } = await req.json();
-
-        if (!email || !password) {
-            return NextResponse.json({ error: 'Missing credentials' }, { status: 400 });
+        // Rate limiting
+        const ip = getClientIp(req);
+        const rl = rateLimit(`admin-login:${ip}`, LOGIN_LIMIT);
+        if (!rl.allowed) {
+            return NextResponse.json(
+                { error: `Too many login attempts. Try again in ${rl.retryAfterSeconds} seconds.` },
+                { status: 429 }
+            );
         }
+
+        await dbConnect();
+        const raw = await req.json();
+
+        // Validate input
+        const parsed = parseBody(adminLoginSchema, raw);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
+        }
+        const { email, password } = parsed.data;
 
         const admin = await Admin.findOne({ email });
         if (!admin) {
@@ -32,13 +48,7 @@ export async function POST(req: Request) {
         response.headers.set('Pragma', 'no-cache');
         response.headers.set('Expires', '0');
 
-        response.cookies.set('admin_token', token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'none',
-            maxAge: 60 * 60 * 24, // 1 day
-            path: '/',
-        });
+        response.cookies.set(COOKIE_NAMES.ADMIN_TOKEN, token, ADMIN_COOKIE_OPTIONS);
 
         return response;
     } catch (error) {

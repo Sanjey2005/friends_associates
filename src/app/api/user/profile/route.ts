@@ -3,6 +3,7 @@ import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import { verifyUserToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
+import { updateProfileSchema, parseBody } from '@/lib/validations';
 
 export async function GET() {
     try {
@@ -46,11 +47,14 @@ export async function PUT(req: Request) {
             return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
         }
 
-        const { name, email } = await req.json();
+        const raw = await req.json();
 
-        if (!name) {
-            return NextResponse.json({ error: 'Name is required' }, { status: 400 });
+        // Validate input
+        const parsed = parseBody(updateProfileSchema, raw);
+        if (!parsed.success) {
+            return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
+        const { name, email } = parsed.data;
 
         const user = await User.findById(decoded.id);
         if (!user) {

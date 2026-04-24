@@ -31,6 +31,10 @@ const LeadSchema: Schema = new Schema({
     },
 }, { timestamps: true });
 
+// Indexes
+LeadSchema.index({ status: 1 });
+LeadSchema.index({ createdAt: -1 });
+
 const Lead: Model<ILead> = mongoose.models.Lead || mongoose.model<ILead>('Lead', LeadSchema);
 
 export default Lead;
