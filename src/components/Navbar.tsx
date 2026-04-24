@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import ThemeToggle from './ThemeToggle';
 
 export default function Navbar() {
     return (
@@ -30,6 +31,7 @@ export default function Navbar() {
                         alignItems: 'center',
                     }}
                 >
+                    <ThemeToggle />
                     <Link
                         href="/services"
                         style={{

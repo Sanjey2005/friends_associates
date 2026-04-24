@@ -74,6 +74,50 @@
   --shadow-lg: var(--shadow-soft);
 }
 
+/* ============================================================
+   Dark theme — overrides core tokens when data-theme="dark"
+   ============================================================ */
+html[data-theme='dark'] {
+  --color-parchment: #1a1a19;
+  --color-ivory: #242422;
+  --color-sand: #2e2e2b;
+  --color-white: #2a2a28;
+  --color-near-black: #f5f4ed;
+  --color-dark-surface: #0f0f0e;
+
+  --color-text: #ececec;
+  --color-text-strong: #f5f4ed;
+  --color-text-secondary: #b0aea5;
+  --color-text-tertiary: #87867f;
+  --color-text-on-dark: #b0aea5;
+  --color-text-button-light: #ececec;
+
+  --color-border: #30302e;
+  --color-border-warm: #3a3a37;
+  --color-border-dark: #0f0f0e;
+  --color-ring: #3a3a37;
+  --color-ring-deep: #4a4a46;
+
+  --shadow-whisper: 0 4px 24px rgba(0, 0, 0, 0.35);
+  --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.45);
+
+  --background: var(--color-parchment);
+  --surface: var(--color-ivory);
+  --surface-light: var(--color-sand);
+  --text: var(--color-text);
+  --text-light: var(--color-text-secondary);
+  --border: var(--color-border);
+}
+
+html[data-theme='dark'] .btn-primary {
+  color: #1a1a19;
+}
+
+html[data-theme='dark'] .btn-dark {
+  background: var(--color-ivory);
+  color: var(--color-text);
+}
+
 * {
   box-sizing: border-box;
   padding: 0;
