@@ -1,8 +1,9 @@
 import Navbar from '@/components/Navbar';
 import QuoteForm from '@/components/QuoteForm';
 import Footer from '@/components/Footer';
+import AnimatedHero from '@/components/AnimatedHero';
 import Link from 'next/link';
-import { Shield, Clock, Award, Wallet, ArrowRight, Sparkles } from 'lucide-react';
+import { Shield, Clock, Award, Wallet, ArrowRight } from 'lucide-react';
 
 export default function Home() {
   const features = [
@@ -32,90 +33,7 @@ export default function Home() {
     <main style={{ minHeight: '100vh', background: 'var(--color-parchment)' }}>
       <Navbar />
 
-      {/* Hero Section — Parchment */}
-      <section
-        style={{
-          padding: '7rem 1.5rem 6rem',
-          background: 'var(--color-parchment)',
-        }}
-      >
-        <div
-          className="container"
-          style={{ textAlign: 'center', maxWidth: '860px' }}
-        >
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              background: 'var(--color-sand)',
-              padding: '0.375rem 0.875rem',
-              borderRadius: '9999px',
-              border: '1px solid var(--color-border-warm)',
-              marginBottom: '2rem',
-              fontSize: '0.8rem',
-              color: 'var(--color-text-button-light)',
-              letterSpacing: '0.02em',
-            }}
-          >
-            <Sparkles size={14} style={{ color: 'var(--color-terracotta)' }} />
-            <span>5 Years of Excellence</span>
-          </div>
-
-          <h1
-            style={{
-              fontFamily: 'var(--font-serif)',
-              fontSize: 'clamp(2.5rem, 6vw, 4rem)',
-              fontWeight: 500,
-              lineHeight: 1.08,
-              letterSpacing: '-0.015em',
-              color: 'var(--color-text)',
-              marginBottom: '1.5rem',
-            }}
-          >
-            Your one-stop solution<br />
-            to every insurance need.
-          </h1>
-
-          <p
-            style={{
-              fontSize: '1.25rem',
-              color: 'var(--color-text-secondary)',
-              maxWidth: '640px',
-              margin: '0 auto 2.5rem',
-              lineHeight: 1.6,
-            }}
-          >
-            Protect what matters most with tailored insurance solutions from Friends Associates —
-            thoughtful, personal, and unhurried.
-          </p>
-
-          <div
-            style={{
-              display: 'flex',
-              gap: '0.75rem',
-              justifyContent: 'center',
-              flexWrap: 'wrap',
-            }}
-          >
-            <a
-              href="#quote"
-              className="btn btn-primary"
-              style={{ padding: '0.875rem 1.5rem', fontSize: '1rem' }}
-            >
-              Get a free quote
-              <ArrowRight size={18} />
-            </a>
-            <Link
-              href="/services"
-              className="btn btn-outline"
-              style={{ padding: '0.875rem 1.5rem', fontSize: '1rem' }}
-            >
-              Explore services
-            </Link>
-          </div>
-        </div>
-      </section>
+      <AnimatedHero />
 
       {/* Features — adaptive surface */}
       <section
