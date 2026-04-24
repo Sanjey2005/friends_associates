@@ -1,34 +1,125 @@
 'use client';
 
+import { useState } from 'react';
+import { Building2 } from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
 import AutoScroll from 'embla-carousel-auto-scroll';
 
 interface Partner {
   id: string;
   name: string;
-  tagline?: string;
-  accent?: string;
-  font?: 'serif' | 'sans';
-  weight?: number;
-  tracking?: string;
+  domain?: string;
 }
 
 const defaultPartners: Partner[] = [
-  { id: 'lic', name: 'LIC', tagline: 'of India', accent: '#1a3a7a', font: 'serif', weight: 700, tracking: '0.02em' },
-  { id: 'hdfc-life', name: 'HDFC Life', accent: '#b53333', font: 'sans', weight: 700, tracking: '-0.01em' },
-  { id: 'icici-pru', name: 'ICICI Prudential', accent: '#a8281f', font: 'sans', weight: 600, tracking: '-0.01em' },
-  { id: 'sbi-life', name: 'SBI Life', accent: '#1b4aa0', font: 'sans', weight: 700, tracking: '0.02em' },
-  { id: 'max-life', name: 'Max Life', accent: '#1f3a6b', font: 'serif', weight: 600 },
-  { id: 'bajaj-allianz', name: 'Bajaj Allianz', accent: '#003d7a', font: 'sans', weight: 700, tracking: '-0.01em' },
-  { id: 'tata-aig', name: 'Tata AIG', accent: '#0a2f5e', font: 'sans', weight: 700, tracking: '0.04em' },
-  { id: 'star-health', name: 'Star Health', accent: '#c96442', font: 'serif', weight: 600 },
-  { id: 'new-india', name: 'New India Assurance', accent: '#1a5f3a', font: 'serif', weight: 600 },
-  { id: 'reliance-gen', name: 'Reliance General', accent: '#2b2b2b', font: 'sans', weight: 700, tracking: '-0.01em' },
+  { id: 'lic', name: 'LIC of India', domain: 'licindia.in' },
+  { id: 'hdfc-life', name: 'HDFC Life', domain: 'hdfclife.com' },
+  { id: 'icici-pru', name: 'ICICI Prudential', domain: 'iciciprulife.com' },
+  { id: 'sbi-life', name: 'SBI Life', domain: 'sbilife.co.in' },
+  { id: 'max-life', name: 'Max Life', domain: 'maxlifeinsurance.com' },
+  { id: 'bajaj-allianz', name: 'Bajaj Allianz', domain: 'bajajallianz.com' },
+  { id: 'tata-aig', name: 'Tata AIG', domain: 'tataaig.com' },
+  { id: 'star-health', name: 'Star Health', domain: 'starhealth.in' },
+  { id: 'new-india', name: 'New India Assurance', domain: 'newindia.co.in' },
+  { id: 'reliance-gen', name: 'Reliance General', domain: 'reliancegeneral.co.in' },
 ];
 
 interface Props {
   heading?: string;
   partners?: Partner[];
+}
+
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter((p) => !/^(of|the|and|&)$/i.test(p));
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+}
+
+function PartnerLogo({ partner }: { partner: Partner }) {
+  const [failed, setFailed] = useState(false);
+  const src = partner.domain
+    ? `https://www.google.com/s2/favicons?domain=${encodeURIComponent(partner.domain)}&sz=128`
+    : null;
+
+  const showFallback = !src || failed;
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.75rem',
+        padding: '0.75rem 1.25rem',
+        background: 'var(--color-ivory)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius-md)',
+        minWidth: '200px',
+        height: '72px',
+        transition: 'border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = 'var(--color-border-warm)';
+        e.currentTarget.style.boxShadow = 'var(--shadow-whisper)';
+        e.currentTarget.style.transform = 'translateY(-1px)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = 'var(--color-border)';
+        e.currentTarget.style.boxShadow = 'none';
+        e.currentTarget.style.transform = 'translateY(0)';
+      }}
+    >
+      <div
+        style={{
+          flex: '0 0 auto',
+          width: '40px',
+          height: '40px',
+          borderRadius: '8px',
+          background: 'var(--color-parchment)',
+          border: '1px solid var(--color-border-warm)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
+          color: 'var(--color-terracotta)',
+          fontFamily: 'var(--font-sans)',
+          fontWeight: 600,
+          fontSize: '0.85rem',
+          letterSpacing: '0.02em',
+        }}
+      >
+        {showFallback ? (
+          partner.name ? (
+            <span>{getInitials(partner.name)}</span>
+          ) : (
+            <Building2 size={20} />
+          )
+        ) : (
+          <img
+            src={src!}
+            alt={`${partner.name} logo`}
+            width={32}
+            height={32}
+            loading="lazy"
+            onError={() => setFailed(true)}
+            style={{ width: '32px', height: '32px', objectFit: 'contain' }}
+          />
+        )}
+      </div>
+      <span
+        style={{
+          fontFamily: 'var(--font-sans)',
+          fontWeight: 500,
+          fontSize: '0.95rem',
+          color: 'var(--color-text)',
+          whiteSpace: 'nowrap',
+          lineHeight: 1.2,
+        }}
+      >
+        {partner.name}
+      </span>
+    </div>
+  );
 }
 
 export default function PartnersCarousel({
@@ -70,61 +161,13 @@ export default function PartnersCarousel({
 
         <div style={{ position: 'relative', maxWidth: '1080px', margin: '0 auto' }}>
           <div ref={emblaRef} style={{ overflow: 'hidden' }}>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               {loopList.map((partner, i) => (
                 <div
                   key={`${partner.id}-${i}`}
-                  style={{
-                    flex: '0 0 auto',
-                    minWidth: 0,
-                    paddingLeft: '2rem',
-                    paddingRight: '2rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    height: '96px',
-                  }}
+                  style={{ flex: '0 0 auto', minWidth: 0 }}
                 >
-                  <span
-                    style={{
-                      fontFamily:
-                        partner.font === 'serif' ? 'var(--font-serif)' : 'var(--font-sans)',
-                      fontWeight: partner.weight ?? 600,
-                      fontSize: 'clamp(1.1rem, 1.6vw, 1.5rem)',
-                      letterSpacing: partner.tracking ?? '0',
-                      color: partner.accent ?? 'var(--color-text)',
-                      whiteSpace: 'nowrap',
-                      lineHeight: 1,
-                      display: 'inline-flex',
-                      alignItems: 'baseline',
-                      gap: '0.35em',
-                      opacity: 0.78,
-                      transition: 'opacity 0.2s ease, transform 0.2s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.opacity = '1';
-                      e.currentTarget.style.transform = 'translateY(-1px)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.opacity = '0.78';
-                      e.currentTarget.style.transform = 'translateY(0)';
-                    }}
-                  >
-                    {partner.name}
-                    {partner.tagline && (
-                      <span
-                        style={{
-                          fontFamily: 'var(--font-sans)',
-                          fontWeight: 400,
-                          fontSize: '0.7em',
-                          color: 'var(--color-text-secondary)',
-                          letterSpacing: '0.04em',
-                        }}
-                      >
-                        {partner.tagline}
-                      </span>
-                    )}
-                  </span>
+                  <PartnerLogo partner={partner} />
                 </div>
               ))}
             </div>
