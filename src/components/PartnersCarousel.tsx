@@ -6,20 +6,24 @@ import AutoScroll from 'embla-carousel-auto-scroll';
 interface Partner {
   id: string;
   name: string;
-  logo: string;
+  tagline?: string;
+  accent?: string;
+  font?: 'serif' | 'sans';
+  weight?: number;
+  tracking?: string;
 }
 
 const defaultPartners: Partner[] = [
-  { id: 'lic', name: 'LIC', logo: 'https://logo.clearbit.com/licindia.in' },
-  { id: 'hdfc-life', name: 'HDFC Life', logo: 'https://logo.clearbit.com/hdfclife.com' },
-  { id: 'icici-pru', name: 'ICICI Prudential', logo: 'https://logo.clearbit.com/iciciprulife.com' },
-  { id: 'sbi-life', name: 'SBI Life', logo: 'https://logo.clearbit.com/sbilife.co.in' },
-  { id: 'max-life', name: 'Max Life', logo: 'https://logo.clearbit.com/maxlifeinsurance.com' },
-  { id: 'bajaj-allianz', name: 'Bajaj Allianz', logo: 'https://logo.clearbit.com/bajajallianz.com' },
-  { id: 'tata-aig', name: 'Tata AIG', logo: 'https://logo.clearbit.com/tataaig.com' },
-  { id: 'star-health', name: 'Star Health', logo: 'https://logo.clearbit.com/starhealth.in' },
-  { id: 'new-india', name: 'New India Assurance', logo: 'https://logo.clearbit.com/newindia.co.in' },
-  { id: 'reliance-gen', name: 'Reliance General', logo: 'https://logo.clearbit.com/reliancegeneral.co.in' },
+  { id: 'lic', name: 'LIC', tagline: 'of India', accent: '#1a3a7a', font: 'serif', weight: 700, tracking: '0.02em' },
+  { id: 'hdfc-life', name: 'HDFC Life', accent: '#b53333', font: 'sans', weight: 700, tracking: '-0.01em' },
+  { id: 'icici-pru', name: 'ICICI Prudential', accent: '#a8281f', font: 'sans', weight: 600, tracking: '-0.01em' },
+  { id: 'sbi-life', name: 'SBI Life', accent: '#1b4aa0', font: 'sans', weight: 700, tracking: '0.02em' },
+  { id: 'max-life', name: 'Max Life', accent: '#1f3a6b', font: 'serif', weight: 600 },
+  { id: 'bajaj-allianz', name: 'Bajaj Allianz', accent: '#003d7a', font: 'sans', weight: 700, tracking: '-0.01em' },
+  { id: 'tata-aig', name: 'Tata AIG', accent: '#0a2f5e', font: 'sans', weight: 700, tracking: '0.04em' },
+  { id: 'star-health', name: 'Star Health', accent: '#c96442', font: 'serif', weight: 600 },
+  { id: 'new-india', name: 'New India Assurance', accent: '#1a5f3a', font: 'serif', weight: 600 },
+  { id: 'reliance-gen', name: 'Reliance General', accent: '#2b2b2b', font: 'sans', weight: 700, tracking: '-0.01em' },
 ];
 
 interface Props {
@@ -78,31 +82,49 @@ export default function PartnersCarousel({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    height: '88px',
+                    height: '96px',
                   }}
                 >
-                  <img
-                    src={partner.logo}
-                    alt={partner.name}
-                    loading="lazy"
+                  <span
                     style={{
-                      height: '48px',
-                      width: 'auto',
-                      maxWidth: '160px',
-                      objectFit: 'contain',
-                      filter: 'grayscale(100%)',
-                      opacity: 0.72,
-                      transition: 'filter 0.2s ease, opacity 0.2s ease',
+                      fontFamily:
+                        partner.font === 'serif' ? 'var(--font-serif)' : 'var(--font-sans)',
+                      fontWeight: partner.weight ?? 600,
+                      fontSize: 'clamp(1.1rem, 1.6vw, 1.5rem)',
+                      letterSpacing: partner.tracking ?? '0',
+                      color: partner.accent ?? 'var(--color-text)',
+                      whiteSpace: 'nowrap',
+                      lineHeight: 1,
+                      display: 'inline-flex',
+                      alignItems: 'baseline',
+                      gap: '0.35em',
+                      opacity: 0.78,
+                      transition: 'opacity 0.2s ease, transform 0.2s ease',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.filter = 'grayscale(0%)';
                       e.currentTarget.style.opacity = '1';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.filter = 'grayscale(100%)';
-                      e.currentTarget.style.opacity = '0.72';
+                      e.currentTarget.style.opacity = '0.78';
+                      e.currentTarget.style.transform = 'translateY(0)';
                     }}
-                  />
+                  >
+                    {partner.name}
+                    {partner.tagline && (
+                      <span
+                        style={{
+                          fontFamily: 'var(--font-sans)',
+                          fontWeight: 400,
+                          fontSize: '0.7em',
+                          color: 'var(--color-text-secondary)',
+                          letterSpacing: '0.04em',
+                        }}
+                      >
+                        {partner.tagline}
+                      </span>
+                    )}
+                  </span>
                 </div>
               ))}
             </div>
