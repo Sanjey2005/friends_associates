@@ -118,6 +118,17 @@ html[data-theme='dark'] .btn-dark {
   color: var(--color-text);
 }
 
+.theme-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+html[data-theme='dark'] .theme-icon-moon,
+html:not([data-theme='dark']) .theme-icon-sun {
+  display: none;
+}
+
 * {
   box-sizing: border-box;
   padding: 0;

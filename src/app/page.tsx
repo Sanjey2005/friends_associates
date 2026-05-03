@@ -4,6 +4,7 @@ import Footer from '@/components/Footer';
 import AnimatedHero from '@/components/AnimatedHero';
 import PartnersCarousel from '@/components/PartnersCarousel';
 import Link from 'next/link';
+import Script from 'next/script';
 import { Shield, Clock, Award, Wallet, ArrowRight } from 'lucide-react';
 import type { Metadata } from 'next';
 
@@ -84,7 +85,8 @@ export default function Home() {
 
   return (
     <main style={{ minHeight: '100vh', background: 'var(--color-parchment)' }}>
-      <script
+      <Script
+        id="friends-associates-local-business"
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }}
       />

@@ -2,6 +2,7 @@ import Navbar from '@/components/Navbar';
 import { Car, Bike, Heart, Home as HomeIcon, Briefcase, Umbrella, ArrowRight } from 'lucide-react';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
+import Script from 'next/script';
 import type { Metadata } from 'next';
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://friendsassociates.in';
@@ -149,11 +150,13 @@ export default function Services() {
 
     return (
         <main style={{ minHeight: '100vh', background: 'var(--color-parchment)' }}>
-            <script
+            <Script
+                id="friends-associates-services"
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(servicesJsonLd) }}
             />
-            <script
+            <Script
+                id="friends-associates-services-faq"
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
             />
