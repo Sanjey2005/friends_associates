@@ -1,206 +1,140 @@
-# 🛡️ Friends Associates - Insurance Management Platform
+# Friends Associates
 
-A comprehensive full-stack insurance management system built for insurance agencies to manage policies, leads, customers, and provide real-time customer support. The platform features separate dashboards for customers and administrators with advanced analytics, policy tracking, and communication tools.
+Friends Associates is a Next.js App Router insurance management app for customer policies, vehicles, quote leads, admin workflows, reminders, and support chat.
 
-![Next.js](https://img.shields.io/badge/Next.js-16.0.4-black?style=for-the-badge&logo=next.js)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)
-![MongoDB](https://img.shields.io/badge/MongoDB-8.20.1-green?style=for-the-badge&logo=mongodb)
-![React](https://img.shields.io/badge/React-19.2.0-blue?style=for-the-badge&logo=react)
+## Stack
 
-## ✨ Features
+- Next.js 16 App Router and React 19
+- TypeScript
+- MongoDB with Mongoose
+- Cookie-based JWT auth signed and verified with `jose`
+- Same-origin browser requests through `src/lib/api-client.ts`
+- Email delivery with `nodemailer`
+- Tests with Vitest and React Testing Library
 
-### Customer Features
-- **User Registration & Authentication** - Secure signup/login with email verification
-- **Quote Request System** - Submit insurance quotes with vehicle and personal details
-- **Policy Management** - View all active policies with expiry dates and policy documents
-- **Vehicle Management** - Track and manage registered vehicles
-- **Real-time Chat Support** - Direct messaging with admin support team
-- **Profile Management** - Update personal information and preferences
+## Setup
 
-### Admin Features
-- **Comprehensive Dashboard** - Analytics with interactive charts (bar, pie, line charts)
-- **Policy Management** - Create, update, and track insurance policies with expiry monitoring
-- **Lead Management** - Track and manage quote requests with status updates
-- **User Management** - Create and manage customer accounts
-- **Vehicle Management** - Add and track customer vehicles
-- **Real-time Messaging** - Communicate with customers through integrated chat system
-- **Automated Reminders** - Cron jobs for policy expiry notifications
-- **Advanced Filtering** - Search and filter policies by type, status, and expiry date
+1. Install dependencies:
 
-## 🛠️ Tech Stack
-
-- **Frontend**: Next.js 16, React 19, TypeScript
-- **Backend**: Next.js API Routes
-- **Database**: MongoDB with Mongoose ODM
-- **Authentication**: JWT (JSON Web Tokens) with bcryptjs
-- **Email**: Nodemailer for notifications and verification
-- **Charts**: Recharts for data visualization
-- **UI Components**: Lucide React icons, React Hot Toast
-- **HTTP Client**: Axios
-- **Date Handling**: date-fns
-
-## 📋 Prerequisites
-
-- Node.js 18+ and npm/yarn/pnpm
-- MongoDB database (local or cloud like MongoDB Atlas)
-- Email service credentials (Gmail, SendGrid, etc.)
-
-## 🚀 Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/friends_associates.git
-   cd friends_associates
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   # or
-   yarn install
-   # or
-   pnpm install
-   ```
-
-3. **Set up environment variables**
-   
-   Create a `.env.local` file in the root directory:
-   ```env
-   MONGODB_URI=your_mongodb_connection_string
-   JWT_SECRET=your_jwt_secret_key
-   ADMIN_JWT_SECRET=your_admin_jwt_secret_key
-   
-   # Email Configuration (Gmail example)
-   EMAIL_HOST=smtp.gmail.com
-   EMAIL_PORT=587
-   EMAIL_USER=your_email@gmail.com
-   EMAIL_PASS=your_app_password
-   EMAIL_FROM=your_email@gmail.com
-   
-   # Optional: For production
-   NODE_ENV=production
-   ```
-
-4. **Set up admin account**
-   ```bash
-   npm run create-admin
-   # Follow the prompts to create an admin account
-   ```
-
-5. **Run the development server**
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   # or
-   pnpm dev
-   ```
-
-6. **Open your browser**
-   
-   Navigate to [http://localhost:3000](http://localhost:3000)
-
-## 📁 Project Structure
-
-```
-friends_associates/
-├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── api/               # API routes
-│   │   │   ├── auth/          # Authentication endpoints
-│   │   │   ├── chat/          # Chat API
-│   │   │   ├── leads/         # Lead management
-│   │   │   ├── policies/     # Policy management
-│   │   │   ├── vehicles/      # Vehicle management
-│   │   │   └── users/         # User management
-│   │   ├── dashboard/         # Dashboard pages
-│   │   │   ├── admin/         # Admin dashboard
-│   │   │   └── user/         # User dashboard
-│   │   ├── login/            # Login pages
-│   │   └── page.tsx          # Home page
-│   ├── components/            # React components
-│   │   ├── AdminAnalytics.tsx
-│   │   ├── ChatWidget.tsx
-│   │   ├── Footer.tsx
-│   │   ├── Navbar.tsx
-│   │   └── QuoteForm.tsx
-│   ├── lib/                   # Utility functions
-│   │   ├── auth.ts           # Authentication helpers
-│   │   ├── db.ts             # Database connection
-│   │   └── email.ts          # Email utilities
-│   └── models/                # Mongoose models
-│       ├── Admin.ts
-│       ├── Chat.ts
-│       ├── Lead.ts
-│       ├── Policy.ts
-│       ├── User.ts
-│       └── Vehicle.ts
-├── scripts/                   # Utility scripts
-│   ├── create-admin.ts
-│   ├── seed-admin.ts
-│   └── verify-admin.ts
-├── public/                    # Static assets
-├── package.json
-├── tsconfig.json
-└── README.md
+```bash
+npm install
 ```
 
-## 🔌 API Endpoints
+2. Create `.env.local` from `.env.example` and fill in real values:
 
-### Authentication
-- `POST /api/auth/user/register` - User registration
-- `POST /api/auth/user/login` - User login
-- `POST /api/auth/user/verify` - Email verification
-- `POST /api/auth/user/forgot-password` - Password reset request
-- `POST /api/auth/user/reset-password` - Reset password
-- `POST /api/auth/admin/login` - Admin login
+```env
+MONGO_URI=mongodb+srv://user:password@cluster.example/friends_associates
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+JWT_SECRET_USER=replace-with-a-long-random-user-secret
+JWT_SECRET_ADMIN=replace-with-a-long-random-admin-secret
+EMAIL_SERVICE=gmail
+EMAIL_USER=your_email@example.com
+EMAIL_PASS=your_email_app_password
+CRON_SECRET=replace-with-a-long-random-cron-secret
+```
 
-### Policies
-- `GET /api/policies` - Get all policies (filtered by user for customers)
-- `POST /api/policies` - Create new policy (admin only)
-- `PUT /api/policies` - Update policy (admin only)
+3. Create or update an admin:
 
-### Leads
-- `GET /api/leads` - Get all leads (admin only)
-- `POST /api/leads` - Create new lead (quote request)
-- `PUT /api/leads` - Update lead status (admin only)
+```bash
+npm run admin:create -- --email=admin@example.com --password=StrongPassword123!
+```
 
-### Vehicles
-- `GET /api/vehicles` - Get all vehicles (filtered by user for customers)
-- `POST /api/vehicles` - Add new vehicle (admin only)
+4. Run the app:
 
-### Users
-- `GET /api/users` - Get all users (admin only)
-- `POST /api/users` - Create new user (admin only)
-- `GET /api/user/profile` - Get current user profile
-- `PUT /api/user/profile` - Update user profile
+```bash
+npm run dev
+```
 
-### Chat
-- `GET /api/chat` - Get chat messages
-- `POST /api/chat` - Send message
+Open [http://localhost:3000](http://localhost:3000).
 
-### Cron Jobs
-- `GET /api/cron/reminders` - Send policy expiry reminders (automated)
+## Scripts
 
-## 🎨 Features in Detail
+- `npm run dev` - start the development server
+- `npm run build` - build production assets
+- `npm run start` - start the production server
+- `npm run lint` - run ESLint
+- `npm run test` - run the Vitest suite once
+- `npm run test:watch` - run Vitest in watch mode
+- `npm run admin:create -- --email=... --password=...` - create or update an admin
+- `npm run admin:verify -- --email=... --password=...` - verify admin credentials
+- `npm run email:test -- --to=...` - send a test email
+- `npm run user:check -- --email=...` or `--phone=...` - inspect a user without dumping secrets
 
-### Analytics Dashboard
-- **Policy Status Overview** - Visual representation of active, expired, and expiring policies
-- **Vehicle Type Distribution** - Pie chart showing distribution of vehicle types
-- **Monthly Policy Trends** - Line chart tracking policy creation over time
-- **Lead Statistics** - Total leads and conversion metrics
-- **Top Users** - Identify most active customers
+## Environment
 
-### Real-time Chat
-- Bidirectional messaging between customers and admins
-- Message history persistence
-- Auto-refresh for new messages
-- Real-time updates with polling mechanism
+Required runtime variables:
 
-### Policy Management
-- Track policy expiry dates
-- Automated reminders via cron jobs
-- Policy document links (Google Drive, etc.)
-- Status tracking (Active, Expiring Soon, Expired)
-- Advanced filtering and search
+- `MONGO_URI`
+- `JWT_SECRET_USER`
+- `JWT_SECRET_ADMIN`
+- `NEXT_PUBLIC_APP_URL`
+- `EMAIL_USER`
+- `EMAIL_PASS`
 
+Optional or environment-specific variables:
+
+- `EMAIL_SERVICE` defaults to `gmail`
+- `CRON_SECRET` protects the reminder cron in production
+- `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `TEST_EMAIL_TO` can be used as script defaults
+
+## Auth And Security Notes
+
+- User and admin JWTs are stored in `HttpOnly` cookies and verified in `src/proxy.ts` for dashboard access.
+- Server routes use shared helpers in `src/lib/server-auth.ts` for `requireUser`, `requireAdmin`, and optional sessions.
+- User self-registration requires email verification before login.
+- Verification and reset links store hashed tokens in MongoDB. Plaintext token lookup remains temporarily supported for already-issued links until they expire.
+- Browser code should use `apiFetch` instead of direct `fetch` boilerplate or third-party HTTP clients.
+- Logout must use the server endpoints so `HttpOnly` cookies are cleared by the response.
+
+## API Overview
+
+Authentication:
+
+- `POST /api/auth/user/register`
+- `POST /api/auth/user/login`
+- `POST /api/auth/user/logout`
+- `POST /api/auth/user/resend-verification`
+- `POST /api/auth/user/verify`
+- `POST /api/auth/user/forgot-password`
+- `POST /api/auth/user/reset-password`
+- `POST /api/auth/admin/login`
+- `POST /api/auth/admin/logout`
+
+Resources:
+
+- `GET /api/policies`
+- `GET /api/policies?scope=admin`
+- `POST /api/policies`
+- `PUT /api/policies`
+- `GET /api/vehicles`
+- `GET /api/vehicles?scope=admin`
+- `POST /api/vehicles`
+- `GET /api/users`
+- `POST /api/users`
+- `PUT /api/users`
+- `DELETE /api/users?id=...`
+- `GET /api/leads`
+- `POST /api/leads`
+- `PUT /api/leads`
+- `GET /api/chat`
+- `GET /api/chat?scope=admin`
+- `POST /api/chat`
+
+Cron:
+
+- `GET /api/cron/reminders`
+- In production, send `x-cron-secret: <CRON_SECRET>`.
+- A legacy `?key=<CRON_SECRET>` fallback is still accepted.
+
+## Quality Checks
+
+Run these before shipping:
+
+```bash
+npm run lint
+npm run test
+npm run build
+npm audit --omit=dev
+```
+
+`npm audit --omit=dev` may report moderate transitive `next`/`postcss` findings until the framework dependency provides a safe non-breaking fix. The dependency cleanup goal is no direct production high or critical findings.

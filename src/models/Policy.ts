@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
+import { POLICY_STATUSES, type PolicyStatus } from '@/lib/constants';
 
 export interface IPolicy extends Document {
     userId: mongoose.Types.ObjectId;
@@ -6,7 +7,7 @@ export interface IPolicy extends Document {
     policyLink?: string;
     expiryDate: Date;
     notes?: string;
-    status: 'Active' | 'Expired' | 'Expiring Soon';
+    status: PolicyStatus;
 }
 
 const PolicySchema: Schema = new Schema({
@@ -15,7 +16,7 @@ const PolicySchema: Schema = new Schema({
     policyLink: { type: String },
     expiryDate: { type: Date, required: true },
     notes: { type: String },
-    status: { type: String, enum: ['Active', 'Expired', 'Expiring Soon'], default: 'Active' },
+    status: { type: String, enum: POLICY_STATUSES, default: 'Active' },
 }, { timestamps: true });
 
 // Indexes for common query patterns

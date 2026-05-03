@@ -4,29 +4,31 @@ import bcrypt from 'bcryptjs';
 import dbConnect from '../src/lib/db';
 import Admin from '../src/models/Admin';
 
-dotenv.config({ path: path.resolve(__dirname, '../.env.local') });
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
+
+function readArg(name: string) {
+    const prefix = `--${name}=`;
+    const value = process.argv.find((arg) => arg.startsWith(prefix));
+    return value?.slice(prefix.length);
+}
 
 async function verifyAdmin() {
+    const email = (readArg('email') || process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+    const password = readArg('password') || process.env.ADMIN_PASSWORD || '';
+
+    if (!email || !password) {
+        console.error('Usage: npm run admin:verify -- --email=admin@example.com --password=StrongPassword123!');
+        process.exit(1);
+    }
+
     try {
         await dbConnect();
-        console.log('Connected to database');
-
-        const email = 'ethirajr.cbe@gmail.com';
-        const password = 'Sravan@123';
-
         const admin = await Admin.findOne({ email });
-        if (!admin) {
-            console.log('Admin NOT found');
-        } else {
-            console.log('Admin found:', admin.email);
-            console.log('Hashed Password in DB:', admin.password);
-
-            const isMatch = await bcrypt.compare(password, admin.password);
-            console.log('Password match:', isMatch);
-        }
-        process.exit(0);
+        const isMatch = Boolean(admin && await bcrypt.compare(password, admin.password));
+        console.log(isMatch ? `Admin credentials valid: ${email}` : `Admin credentials invalid: ${email}`);
+        process.exit(isMatch ? 0 : 1);
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Unable to verify admin:', error);
         process.exit(1);
     }
 }

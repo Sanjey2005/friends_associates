@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import axios from 'axios';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { ShieldCheck } from 'lucide-react';
+import { apiFetch, errorMessage, jsonBody } from '@/lib/api-client';
 
 export default function AdminLogin() {
     const [formData, setFormData] = useState({
@@ -19,15 +19,16 @@ export default function AdminLogin() {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await axios.post('/api/auth/admin/login', formData);
-            if (res.status === 200) {
-                toast.success('Welcome back, Admin!');
-                setTimeout(() => {
-                    window.location.href = '/dashboard/admin';
-                }, 500);
-            }
-        } catch (error: any) {
-            toast.error(error.response?.data?.error || 'Login failed');
+            await apiFetch('/api/auth/admin/login', {
+                method: 'POST',
+                body: jsonBody(formData),
+            });
+            toast.success('Welcome back, Admin!');
+            setTimeout(() => {
+                window.location.href = '/dashboard/admin';
+            }, 500);
+        } catch (error) {
+            toast.error(errorMessage(error, 'Login failed'));
         } finally {
             setLoading(false);
         }

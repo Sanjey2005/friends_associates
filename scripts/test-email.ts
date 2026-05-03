@@ -1,62 +1,33 @@
-import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import path from 'path';
+import { sendEmail } from '../src/lib/email';
 
-// Load environment variables
-dotenv.config({ path: '.env.local' });
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
+
+function readArg(name: string) {
+    const prefix = `--${name}=`;
+    const value = process.argv.find((arg) => arg.startsWith(prefix));
+    return value?.slice(prefix.length);
+}
 
 async function testEmail() {
-    console.log('📧 Testing Email Configuration...');
-    console.log(`   User: ${process.env.EMAIL_USER}`);
-    // Mask password for security in logs
-    const pass = process.env.EMAIL_PASS || '';
-    console.log(`   Pass: ${pass.substring(0, 3)}...${pass.substring(pass.length - 3)} (Length: ${pass.length})`);
-
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-        console.error('❌ Missing EMAIL_USER or EMAIL_PASS in .env.local');
-        return;
+    const to = readArg('to') || process.env.TEST_EMAIL_TO;
+    if (!to) {
+        console.error('Usage: npm run email:test -- --to=person@example.com');
+        process.exit(1);
     }
 
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
-        },
-        tls: {
-            rejectUnauthorized: false // Bypass SSL check for debugging
-        },
-        debug: true, // Enable debug output
-        logger: true  // Log to console
-    });
-
     try {
-        console.log('🔄 Attempting to verify connection...');
-        await transporter.verify();
-        console.log('✅ Connection verified successfully!');
-
-        console.log('🔄 Attempting to send test email...');
-        const info = await transporter.sendMail({
-            from: `"Test Script" <${process.env.EMAIL_USER}>`,
-            to: 'sanjey8105@gmail.com', // Hardcoded target
-            subject: 'Test Email from Friends Associates Debugger',
-            text: 'If you receive this, your email configuration is working correctly!',
-            html: '<b>If you receive this, your email configuration is working correctly!</b>',
-        });
-
-        console.log('✅ Message sent successfully!');
-        console.log('   Message ID:', info.messageId);
-        console.log('   Response:', info.response);
-    } catch (error: any) {
-        console.error('❌ Error occurred:');
-        console.error(error);
-
-        if (error.code === 'EAUTH') {
-            console.error('\n⚠️  AUTHENTICATION ERROR');
-            console.error('   Please check:');
-            console.error('   1. EMAIL_USER is the correct Gmail address.');
-            console.error('   2. EMAIL_PASS is a valid 16-character App Password (NOT your login password).');
-            console.error('   3. 2-Step Verification is enabled on the account.');
-        }
+        const info = await sendEmail(
+            to,
+            'Test Email from Friends Associates',
+            '<p>Your email configuration is working correctly.</p>',
+        );
+        console.log(`Email sent: ${info.messageId}`);
+        process.exit(0);
+    } catch (error) {
+        console.error('Unable to send test email:', error);
+        process.exit(1);
     }
 }
 

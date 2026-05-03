@@ -2,23 +2,22 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import { verifyEmailSchema, parseBody } from '@/lib/validations';
+import { tokenLookup } from '@/lib/tokens';
 
 export async function POST(req: Request) {
     try {
         await dbConnect();
         const raw = await req.json();
-
-        // Validate input
         const parsed = parseBody(verifyEmailSchema, raw);
         if (!parsed.success) {
             return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
-        const { token } = parsed.data;
 
+        const { token } = parsed.data;
         const user = await User.findOne({
-            verificationToken: token,
-            verificationTokenExpiry: { $gt: Date.now() }
-        });
+            ...tokenLookup('verificationToken', token),
+            verificationTokenExpiry: { $gt: new Date() },
+        }).select('+verificationToken');
 
         if (!user) {
             return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 });

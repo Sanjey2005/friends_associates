@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import axios from 'axios';
 import toast from 'react-hot-toast';
 import { User, Mail, Phone } from 'lucide-react';
+import { apiFetch, errorMessage, jsonBody } from '@/lib/api-client';
 
 export default function QuoteForm() {
     const [loading, setLoading] = useState(false);
@@ -28,7 +28,10 @@ export default function QuoteForm() {
         setLoading(true);
 
         try {
-            await axios.post('/api/leads', formData);
+            await apiFetch('/api/leads', {
+                method: 'POST',
+                body: jsonBody(formData),
+            });
             toast.success('Quote request submitted successfully! We will contact you soon.');
             setFormData({
                 name: '',
@@ -42,8 +45,7 @@ export default function QuoteForm() {
                 additionalInfo: '',
             });
         } catch (error) {
-            console.error(error);
-            toast.error('Failed to submit quote. Please try again.');
+            toast.error(errorMessage(error, 'Failed to submit quote. Please try again.'));
         } finally {
             setLoading(false);
         }

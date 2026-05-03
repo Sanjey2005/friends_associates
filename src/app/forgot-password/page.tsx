@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import axios from 'axios';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import { Mail, ArrowRight, Phone } from 'lucide-react';
+import { apiFetch, errorMessage, jsonBody } from '@/lib/api-client';
 
 export default function ForgotPasswordPage() {
     const [identifier, setIdentifier] = useState('');
@@ -20,12 +20,15 @@ export default function ForgotPasswordPage() {
             const isEmail = identifier.includes('@');
             const payload = isEmail ? { email: identifier } : { phone: identifier };
 
-            const res = await axios.post('/api/auth/user/forgot-password', payload);
+            const res = await apiFetch<{ message: string }>('/api/auth/user/forgot-password', {
+                method: 'POST',
+                body: jsonBody(payload),
+            });
             setStatus('success');
-            setMessage(res.data.message);
-        } catch (error: any) {
+            setMessage(res.message);
+        } catch (error) {
             setStatus('error');
-            setMessage(error.response?.data?.error || 'Something went wrong. Please try again.');
+            setMessage(errorMessage(error, 'Something went wrong. Please try again.'));
         }
     };
 
@@ -104,7 +107,7 @@ export default function ForgotPasswordPage() {
                                     lineHeight: 1.6,
                                 }}
                             >
-                                Enter your email or phone and we'll send you a link to reset your password.
+                                Enter your email or phone and we&apos;ll send you a link to reset your password.
                             </p>
 
                             <div className="input-group">

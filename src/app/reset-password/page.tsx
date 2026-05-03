@@ -2,9 +2,9 @@
 
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import axios from 'axios';
 import Navbar from '@/components/Navbar';
 import { Lock, CheckCircle } from 'lucide-react';
+import { apiFetch, errorMessage, jsonBody } from '@/lib/api-client';
 
 const cardStyle: React.CSSProperties = {
     maxWidth: '440px',
@@ -64,15 +64,18 @@ function ResetPasswordContent() {
         setMessage('');
 
         try {
-            await axios.post('/api/auth/user/reset-password', { token, password });
+            await apiFetch('/api/auth/user/reset-password', {
+                method: 'POST',
+                body: jsonBody({ token, password }),
+            });
             setStatus('success');
             setMessage('Password reset successfully. Redirecting to sign in…');
             setTimeout(() => {
                 router.push('/login/user');
             }, 3000);
-        } catch (error: any) {
+        } catch (error) {
             setStatus('error');
-            setMessage(error.response?.data?.error || 'Failed to reset password');
+            setMessage(errorMessage(error, 'Failed to reset password'));
         }
     };
 

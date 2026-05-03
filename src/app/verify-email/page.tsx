@@ -2,9 +2,9 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import axios from 'axios';
 import Navbar from '@/components/Navbar';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { apiFetch, errorMessage, jsonBody } from '@/lib/api-client';
 
 function VerifyEmailContent() {
     const router = useRouter();
@@ -22,15 +22,18 @@ function VerifyEmailContent() {
             }
 
             try {
-                await axios.post('/api/auth/user/verify', { token });
+                await apiFetch('/api/auth/user/verify', {
+                    method: 'POST',
+                    body: jsonBody({ token }),
+                });
                 setStatus('success');
                 setMessage('Email verified successfully. Redirecting to sign in…');
                 setTimeout(() => {
                     router.push('/login/user');
                 }, 3000);
-            } catch (error: any) {
+            } catch (error) {
                 setStatus('error');
-                setMessage(error.response?.data?.error || 'Verification failed. Please try again.');
+                setMessage(errorMessage(error, 'Verification failed. Please try again.'));
             }
         };
 

@@ -1,21 +1,22 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
 import { MessageCircle, X, Send } from 'lucide-react';
+import { apiFetch, jsonBody } from '@/lib/api-client';
+import type { ChatMessage, ChatRecord } from '@/types/domain';
 
 export default function ChatWidget() {
     const [isOpen, setIsOpen] = useState(false);
-    const [messages, setMessages] = useState<any[]>([]);
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const fetchMessages = async () => {
         try {
-            const res = await axios.get('/api/chat', { withCredentials: true });
-            if (res.data && res.data.messages) {
-                setMessages(res.data.messages);
+            const chat = await apiFetch<ChatRecord>('/api/chat');
+            if (chat.messages) {
+                setMessages(chat.messages);
             }
         } catch (error) {
             console.error('Error fetching messages:', error);
@@ -37,24 +38,21 @@ export default function ChatWidget() {
     const handleSend = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newMessage.trim()) {
-            console.log('Message is empty, not sending');
             return;
         }
 
         const messageText = newMessage.trim();
-        console.log('Sending message:', messageText);
         setNewMessage('');
         setLoading(true);
 
         try {
-            const response = await axios.post('/api/chat', { text: messageText }, { withCredentials: true });
-            console.log('Message sent successfully:', response.data);
+            await apiFetch('/api/chat', {
+                method: 'POST',
+                body: jsonBody({ text: messageText }),
+            });
             await fetchMessages();
-        } catch (error: any) {
+        } catch (error) {
             console.error('Error sending message:', error);
-            console.error('Error response:', error.response?.data);
-            console.error('Error status:', error.response?.status);
-            // Restore message on error
             setNewMessage(messageText);
         } finally {
             setLoading(false);
@@ -151,7 +149,7 @@ export default function ChatWidget() {
                                     lineHeight: 1.6,
                                 }}
                             >
-                                Ask us anything — we'll reply as soon as possible.
+                                Ask us anything — we&apos;ll reply as soon as possible.
                             </p>
                         )}
                         {messages.map((msg, idx) => {

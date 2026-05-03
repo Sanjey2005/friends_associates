@@ -173,7 +173,7 @@ export default function Services() {
                             marginBottom: '0.75rem',
                         }}
                     >
-                        India's most trusted insurers.
+                        India&apos;s most trusted insurers.
                     </h2>
                     <p
                         style={{
@@ -185,7 +185,7 @@ export default function Services() {
                             margin: '0 auto 3rem',
                         }}
                     >
-                        We work with India's leading insurance providers to bring you thoughtful plans.
+                        We work with India&apos;s leading insurance providers to bring you thoughtful plans.
                     </p>
 
                     <div

@@ -2,67 +2,70 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
-import crypto from 'crypto';
 import { sendEmail } from '@/lib/email';
 import { registerSchema, parseBody } from '@/lib/validations';
 import { rateLimit, getClientIp, REGISTER_LIMIT } from '@/lib/rate-limit';
+import { buildAppUrl, createToken, hashToken } from '@/lib/tokens';
 
 export async function POST(req: Request) {
     try {
-        // Rate limiting
         const ip = getClientIp(req);
         const rl = rateLimit(`register:${ip}`, REGISTER_LIMIT);
         if (!rl.allowed) {
             return NextResponse.json(
                 { error: `Too many registration attempts. Try again in ${rl.retryAfterSeconds} seconds.` },
-                { status: 429 }
+                { status: 429 },
             );
         }
 
         await dbConnect();
         const raw = await req.json();
-
-        // Validate input
         const parsed = parseBody(registerSchema, raw);
         if (!parsed.success) {
             return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
-        const { name, email, phone, password } = parsed.data;
 
-        const existingUser = await User.findOne({ phone });
+        const { name, email, phone, password } = parsed.data;
+        const existingUser = await User.findOne({ $or: [{ phone }, { email }] });
         if (existingUser) {
-            return NextResponse.json({ error: 'User with this phone number already exists' }, { status: 400 });
+            return NextResponse.json({ error: 'A user with this phone number or email already exists' }, { status: 400 });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const verificationToken = crypto.randomBytes(32).toString('hex');
-        const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+        const verificationToken = createToken();
+        const verificationUrl = buildAppUrl('/verify-email', { token: verificationToken });
 
         const user = await User.create({
             name,
-            email: email || undefined,
+            email,
             phone,
             password: hashedPassword,
             isVerified: false,
-            verificationToken,
-            verificationTokenExpiry
+            verificationToken: hashToken(verificationToken),
+            verificationTokenExpiry: new Date(Date.now() + 24 * 60 * 60 * 1000),
         });
 
-        if (email) {
-            const verifyUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${verificationToken}`;
+        try {
             await sendEmail(
                 email,
                 'Verify your email - Friends Associates',
                 `
                     <h1>Welcome to Friends Associates</h1>
                     <p>Please click the link below to verify your email address:</p>
-                    <a href="${verifyUrl}">${verifyUrl}</a>
+                    <p><a href="${verificationUrl}">${verificationUrl}</a></p>
                     <p>This link will expire in 24 hours.</p>
-                `
+                `,
             );
+        } catch (emailError) {
+            await User.findByIdAndDelete(user._id);
+            console.error('Verification email error:', emailError);
+            return NextResponse.json({ error: 'Unable to send verification email right now' }, { status: 503 });
         }
 
-        return NextResponse.json({ message: 'User registered successfully. Please check your email to verify your account.' }, { status: 201 });
+        return NextResponse.json(
+            { message: 'User registered successfully. Please check your email to verify your account.' },
+            { status: 201 },
+        );
     } catch (error) {
         console.error('Registration error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

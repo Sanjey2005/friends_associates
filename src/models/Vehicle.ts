@@ -1,20 +1,21 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
+import { BOARD_TYPES, VEHICLE_TYPES, type BoardType, type VehicleType } from '@/lib/constants';
 
 export interface IVehicle extends Document {
     userId: mongoose.Types.ObjectId;
-    type: string;
+    type: VehicleType;
     vehicleModel: string;
     regNumber: string;
-    boardType?: string; // 'Own Board' | 'T Board'
-    details?: any;
+    boardType?: BoardType;
+    details?: Record<string, unknown>;
 }
 
 const VehicleSchema: Schema = new Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    type: { type: String, required: true },
+    type: { type: String, enum: VEHICLE_TYPES, required: true },
     vehicleModel: { type: String, required: true },
-    regNumber: { type: String, required: true },
-    boardType: { type: String, default: 'Own Board' },
+    regNumber: { type: String, required: true, uppercase: true, trim: true },
+    boardType: { type: String, enum: BOARD_TYPES, default: 'Own Board' },
     details: { type: Schema.Types.Mixed },
 }, { timestamps: true });
 

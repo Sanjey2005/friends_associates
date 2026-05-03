@@ -1,16 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import axios from 'axios';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { User, Mail, Lock, Phone, ArrowRight } from 'lucide-react';
+import { apiFetch, errorMessage, jsonBody } from '@/lib/api-client';
 
 export default function UserLogin() {
-    const router = useRouter();
     const [isLogin, setIsLogin] = useState(true);
     const [loading, setLoading] = useState(false);
     const [loginData, setLoginData] = useState({
@@ -28,16 +26,16 @@ export default function UserLogin() {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await axios.post('/api/auth/user/login', loginData);
-            if (res.status === 200) {
-                toast.success('Welcome back!');
-                // Use window.location for full page reload to ensure cookies are available
-                setTimeout(() => {
-                    window.location.href = '/dashboard/user';
-                }, 500);
-            }
-        } catch (error: any) {
-            toast.error(error.response?.data?.error || 'Login failed');
+            await apiFetch('/api/auth/user/login', {
+                method: 'POST',
+                body: jsonBody(loginData),
+            });
+            toast.success('Welcome back!');
+            setTimeout(() => {
+                window.location.href = '/dashboard/user';
+            }, 500);
+        } catch (error) {
+            toast.error(errorMessage(error, 'Login failed'));
         } finally {
             setLoading(false);
         }
@@ -47,14 +45,15 @@ export default function UserLogin() {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await axios.post('/api/auth/user/register', registerData);
-            if (res.status === 201) {
-                toast.success('Account created! Please check your email to verify.');
-                setIsLogin(true);
-                setLoginData({ phone: registerData.phone, password: '' });
-            }
-        } catch (error: any) {
-            toast.error(error.response?.data?.error || 'Registration failed');
+            await apiFetch('/api/auth/user/register', {
+                method: 'POST',
+                body: jsonBody(registerData),
+            });
+            toast.success('Account created! Please check your email to verify.');
+            setIsLogin(true);
+            setLoginData({ phone: registerData.phone, password: '' });
+        } catch (error) {
+            toast.error(errorMessage(error, 'Registration failed'));
         } finally {
             setLoading(false);
         }
@@ -293,7 +292,7 @@ export default function UserLogin() {
                                         value={registerData.password}
                                         onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                                         required
-                                        minLength={6}
+                                        minLength={7}
                                     />
                                 </div>
                             </div>

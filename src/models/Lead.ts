@@ -1,3 +1,4 @@
+import { LEAD_STATUSES, type LeadStatus } from '@/lib/constants';
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface ILead extends Document {
@@ -10,14 +11,14 @@ export interface ILead extends Document {
     regNumber?: string;
     insuranceType: string;
     additionalInfo?: string;
-    status: 'Completed' | 'Not Completed' | 'Customer Didn’t Pick';
+    status: LeadStatus;
     createdAt: Date;
 }
 
 const LeadSchema: Schema = new Schema({
     name: { type: String, required: true },
-    email: { type: String, required: true },
-    phone: { type: String, required: true },
+    email: { type: String, required: true, lowercase: true, trim: true },
+    phone: { type: String, required: true, trim: true },
     vehicleType: { type: String, required: true },
     vehicleModel: { type: String },
     mfgYear: { type: String },
@@ -26,7 +27,7 @@ const LeadSchema: Schema = new Schema({
     additionalInfo: { type: String },
     status: { 
         type: String, 
-        enum: ['Completed', 'Not Completed', 'Customer Didn’t Pick'],
+        enum: LEAD_STATUSES,
         default: 'Not Completed'
     },
 }, { timestamps: true });

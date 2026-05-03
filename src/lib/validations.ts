@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { BOARD_TYPES, LEAD_STATUSES, POLICY_STATUSES, VEHICLE_TYPES } from '@/lib/constants';
+import { normalizeEmail, normalizePhone, normalizeRegistrationNumber } from '@/lib/normalizers';
 
 // ============================================================
 // Shared primitives
@@ -6,12 +8,17 @@ import { z } from 'zod';
 
 const phoneSchema = z
     .string()
-    .trim()
-    .min(10, 'Phone number must be at least 10 digits')
-    .max(15, 'Phone number is too long')
-    .regex(/^[0-9+\-() ]+$/, 'Invalid phone number format');
+    .transform(normalizePhone)
+    .pipe(
+        z
+            .string()
+            .min(10, 'Phone number must be at least 10 digits')
+            .max(15, 'Phone number is too long')
+            .regex(/^[0-9+\-()]+$/, 'Invalid phone number format'),
+    );
 
-const emailSchema = z.string().trim().email('Invalid email format').max(254);
+const emailSchema = z.string().transform((value) => normalizeEmail(value) || '').pipe(z.string().email('Invalid email format').max(254));
+const optionalEmailSchema = z.string().transform(normalizeEmail).optional().or(z.literal(''));
 
 const objectIdSchema = z.string().regex(/^[a-fA-F0-9]{24}$/, 'Invalid ID format');
 
@@ -32,7 +39,7 @@ const nameSchema = z.string().trim().min(1, 'Name is required').max(100, 'Name i
 
 export const registerSchema = z.object({
     name: nameSchema,
-    email: emailSchema.optional().or(z.literal('')),
+    email: emailSchema,
     phone: phoneSchema,
     password: passwordSchema,
 });
@@ -52,7 +59,7 @@ export const verifyEmailSchema = z.object({
 });
 
 export const forgotPasswordSchema = z.object({
-    email: emailSchema.optional().or(z.literal('')),
+    email: optionalEmailSchema,
     phone: phoneSchema.optional().or(z.literal('')),
 }).refine(
     (data) => (data.email && data.email.length > 0) || (data.phone && data.phone.length > 0),
@@ -74,7 +81,7 @@ export const createPolicySchema = z.object({
     policyLink: z.string().url('Invalid URL').max(2048).optional().or(z.literal('')),
     expiryDate: z.string().min(1, 'Expiry date is required'),
     notes: z.string().max(1000, 'Notes too long').optional().or(z.literal('')),
-    status: z.enum(['Active', 'Expired', 'Expiring Soon']).default('Active'),
+    status: z.enum(POLICY_STATUSES).default('Active'),
 });
 
 export const updatePolicySchema = z.object({
@@ -102,7 +109,7 @@ export const createLeadSchema = z.object({
 
 export const updateLeadSchema = z.object({
     id: objectIdSchema,
-    status: z.enum(['Completed', 'Not Completed', "Customer Didn't Pick"]),
+    status: z.enum(LEAD_STATUSES),
 });
 
 // ============================================================
@@ -111,10 +118,10 @@ export const updateLeadSchema = z.object({
 
 export const createVehicleSchema = z.object({
     userId: objectIdSchema,
-    type: z.string().trim().min(1, 'Vehicle type is required').max(50),
+    type: z.enum(VEHICLE_TYPES),
     vehicleModel: z.string().trim().min(1, 'Vehicle model is required').max(100),
-    regNumber: z.string().trim().min(1, 'Registration number is required').max(20),
-    boardType: z.enum(['Own Board', 'T Board']).optional().default('Own Board'),
+    regNumber: z.string().transform(normalizeRegistrationNumber).pipe(z.string().min(1, 'Registration number is required').max(20)),
+    boardType: z.enum(BOARD_TYPES).optional().default('Own Board'),
     details: z.record(z.string(), z.unknown()).optional(),
 });
 
@@ -125,7 +132,7 @@ export const createVehicleSchema = z.object({
 export const createUserSchema = z.object({
     name: nameSchema,
     phone: phoneSchema,
-    email: emailSchema.optional().or(z.literal('')),
+    email: optionalEmailSchema,
 });
 
 export const updateUserSchema = z.object({
@@ -133,7 +140,7 @@ export const updateUserSchema = z.object({
     _id: objectIdSchema.optional(), // frontend sometimes sends _id
     name: nameSchema,
     phone: phoneSchema,
-    email: emailSchema.optional().or(z.literal('')),
+    email: optionalEmailSchema,
 }).passthrough(); // allow _id and other fields frontend sends
 
 export const deleteUserSchema = z.object({
@@ -146,7 +153,7 @@ export const deleteUserSchema = z.object({
 
 export const updateProfileSchema = z.object({
     name: nameSchema,
-    email: emailSchema.optional().or(z.literal('')),
+    email: optionalEmailSchema,
 });
 
 // ============================================================

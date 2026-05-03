@@ -1,37 +1,42 @@
-/**
- * Centralized cookie configuration for authentication tokens.
- * All cookies use HttpOnly + Secure + SameSite=Lax + Path=/.
- *
- * SameSite is set to 'lax' instead of 'none' — this provides CSRF
- * protection (cookies are not sent on cross-site POST requests) while
- * still allowing normal top-level navigations from external links.
- */
-
+import type { NextResponse } from 'next/server';
 import type { ResponseCookie } from 'next/dist/compiled/@edge-runtime/cookies';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
 const baseCookieOptions: Partial<ResponseCookie> = {
     httpOnly: true,
-    secure: isProduction,     // Secure=true in production (HTTPS), false in dev (localhost HTTP)
-    sameSite: 'lax' as const, // CSRF protection — blocks cross-site POST
+    secure: isProduction,
+    sameSite: 'lax',
     path: '/',
 };
 
-/** Cookie options for user authentication tokens. Max age = 1 day. */
 export const USER_COOKIE_OPTIONS: Partial<ResponseCookie> = {
     ...baseCookieOptions,
-    maxAge: 60 * 60 * 24, // 1 day (reduced from 7 days)
+    maxAge: 60 * 60 * 24,
 };
 
-/** Cookie options for admin authentication tokens. Max age = 8 hours. */
 export const ADMIN_COOKIE_OPTIONS: Partial<ResponseCookie> = {
     ...baseCookieOptions,
-    maxAge: 60 * 60 * 8, // 8 hours (a working day)
+    maxAge: 60 * 60 * 8,
 };
 
-/** Cookie name constants */
 export const COOKIE_NAMES = {
     USER_TOKEN: 'token',
     ADMIN_TOKEN: 'admin_token',
 } as const;
+
+export function clearCookie(response: NextResponse, name: string) {
+    response.cookies.set(name, '', {
+        ...baseCookieOptions,
+        maxAge: 0,
+        expires: new Date(0),
+    });
+}
+
+export function clearUserCookie(response: NextResponse) {
+    clearCookie(response, COOKIE_NAMES.USER_TOKEN);
+}
+
+export function clearAdminCookie(response: NextResponse) {
+    clearCookie(response, COOKIE_NAMES.ADMIN_TOKEN);
+}

@@ -9,28 +9,25 @@ import { USER_COOKIE_OPTIONS, COOKIE_NAMES } from '@/lib/cookies';
 
 export async function POST(req: Request) {
     try {
-        // Rate limiting
         const ip = getClientIp(req);
         const rl = rateLimit(`login:${ip}`, LOGIN_LIMIT);
         if (!rl.allowed) {
             return NextResponse.json(
                 { error: `Too many login attempts. Try again in ${rl.retryAfterSeconds} seconds.` },
-                { status: 429 }
+                { status: 429 },
             );
         }
 
         await dbConnect();
         const raw = await req.json();
-
-        // Validate input
         const parsed = parseBody(loginSchema, raw);
         if (!parsed.success) {
             return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
-        const { phone, password } = parsed.data;
 
+        const { phone, password } = parsed.data;
         const user = await User.findOne({ phone });
-        if (!user || !user.password) {
+        if (!user?.password) {
             return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
         }
 
@@ -39,12 +36,20 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
         }
 
-        const token = signUserToken({ id: user._id, email: user.email, role: 'user' });
+        if (!user.isVerified) {
+            return NextResponse.json(
+                { error: 'Please verify your email before signing in.' },
+                { status: 403 },
+            );
+        }
 
-        const response = NextResponse.json({ message: 'Login successful', user: { name: user.name, phone: user.phone } });
+        const token = await signUserToken({ id: String(user._id), email: user.email });
+        const response = NextResponse.json({
+            message: 'Login successful',
+            user: { name: user.name, phone: user.phone, email: user.email },
+        });
 
         response.cookies.set(COOKIE_NAMES.USER_TOKEN, token, USER_COOKIE_OPTIONS);
-
         return response;
     } catch (error) {
         console.error('Login error:', error);

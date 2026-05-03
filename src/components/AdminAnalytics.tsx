@@ -66,7 +66,7 @@ const statValueSmall: React.CSSProperties = {
 type PolicyLike = {
     status?: string;
     createdAt?: string | Date;
-    userId?: { name?: string } | null;
+    userId?: string | { name?: string } | null;
 };
 
 type VehicleLike = { type?: string };
@@ -94,7 +94,7 @@ export default function AdminAnalytics({
 
     const userPolicyCount: Record<string, number> = {};
     policies.forEach((p) => {
-        const userName = p.userId?.name || 'Unknown';
+        const userName = typeof p.userId === 'object' && p.userId ? p.userId.name || 'Unknown' : 'Unknown';
         userPolicyCount[userName] = (userPolicyCount[userName] || 0) + 1;
     });
     const topUser = Object.entries(userPolicyCount).sort((a, b) => b[1] - a[1])[0];
@@ -111,7 +111,7 @@ export default function AdminAnalytics({
 
     const monthCount: Record<string, number> = {};
     policies.forEach((p) => {
-        const date = new Date(p.createdAt || Date.now());
+        const date = p.createdAt ? new Date(p.createdAt) : new Date(0);
         const month = date.toLocaleString('default', { month: 'short', year: '2-digit' });
         monthCount[month] = (monthCount[month] || 0) + 1;
     });
@@ -121,7 +121,7 @@ export default function AdminAnalytics({
     }));
 
     const totalLeads = leads.length;
-    const mostCommonVehicle = vehicleTypeData.sort((a, b) => b.value - a.value)[0]?.name || 'N/A';
+    const mostCommonVehicle = [...vehicleTypeData].sort((a, b) => b.value - a.value)[0]?.name || 'N/A';
 
     const cardStyle: React.CSSProperties = {
         background: 'var(--color-ivory)',

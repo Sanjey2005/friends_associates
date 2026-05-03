@@ -3,17 +3,18 @@
 import { useState, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import axios from 'axios';
 import { MessageCircle, Send } from 'lucide-react';
 import { sectionTitle } from './shared';
+import { apiFetch, errorMessage, jsonBody } from '@/lib/api-client';
+import type { ChatMessage, ChatRecord } from '@/types/domain';
 
 interface Props {
-    chats: any[];
+    chats: ChatRecord[];
     onDataChange: () => void;
 }
 
 export default function AdminMessagesTab({ chats, onDataChange }: Props) {
-    const [selectedChat, setSelectedChat] = useState<any>(null);
+    const [selectedChat, setSelectedChat] = useState<ChatRecord | null>(null);
     const [adminMessage, setAdminMessage] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -21,10 +22,9 @@ export default function AdminMessagesTab({ chats, onDataChange }: Props) {
     useEffect(() => {
         const interval = setInterval(async () => {
             try {
-                const res = await axios.get('/api/chat?scope=admin', { withCredentials: true });
-                // Update selected chat if it exists
+                const data = await apiFetch<ChatRecord[]>('/api/chat?scope=admin');
                 if (selectedChat) {
-                    const updatedChat = res.data.find((c: any) => c._id === selectedChat._id);
+                    const updatedChat = data.find((chat) => chat._id === selectedChat._id);
                     if (updatedChat) setSelectedChat(updatedChat);
                 }
                 onDataChange();
@@ -43,14 +43,18 @@ export default function AdminMessagesTab({ chats, onDataChange }: Props) {
         e.preventDefault();
         if (!adminMessage.trim() || !selectedChat) return;
         try {
-            await axios.post('/api/chat', { text: adminMessage, userId: selectedChat.userId._id }, { withCredentials: true });
+            const userId = typeof selectedChat.userId === 'object' ? selectedChat.userId._id : selectedChat.userId;
+            await apiFetch('/api/chat', {
+                method: 'POST',
+                body: jsonBody({ text: adminMessage, userId }),
+            });
             setAdminMessage('');
-            const res = await axios.get('/api/chat?scope=admin', { withCredentials: true });
-            const updatedChat = res.data.find((c: any) => c._id === selectedChat._id);
+            const data = await apiFetch<ChatRecord[]>('/api/chat?scope=admin');
+            const updatedChat = data.find((chat) => chat._id === selectedChat._id);
             if (updatedChat) setSelectedChat(updatedChat);
             onDataChange();
         } catch (error) {
-            toast.error('Failed to send message');
+            toast.error(errorMessage(error, 'Failed to send message'));
         }
     };
 
@@ -81,7 +85,7 @@ export default function AdminMessagesTab({ chats, onDataChange }: Props) {
                             No messages yet
                         </div>
                     ) : (
-                        chats.map((chat: any) => {
+                        chats.map((chat) => {
                             const isActive = selectedChat?._id === chat._id;
                             return (
                                 <div
@@ -95,8 +99,8 @@ export default function AdminMessagesTab({ chats, onDataChange }: Props) {
                                         borderLeft: isActive ? '3px solid var(--color-terracotta)' : '3px solid transparent',
                                     }}
                                 >
-                                    <div style={{ fontWeight: 500, color: 'var(--color-text)' }}>{chat.userId?.name || 'Unknown user'}</div>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-tertiary)' }}>{chat.userId?.email}</div>
+                                    <div style={{ fontWeight: 500, color: 'var(--color-text)' }}>{typeof chat.userId === 'object' ? chat.userId.name : 'Unknown user'}</div>
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-tertiary)' }}>{typeof chat.userId === 'object' ? chat.userId.email : ''}</div>
                                     <div style={{ fontSize: '0.75rem', color: 'var(--color-text-tertiary)', marginTop: '0.25rem' }}>
                                         {format(new Date(chat.lastUpdated), 'dd MMM HH:mm')}
                                     </div>
@@ -112,12 +116,12 @@ export default function AdminMessagesTab({ chats, onDataChange }: Props) {
                         <>
                             <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--color-border)', background: 'var(--color-ivory)' }}>
                                 <h3 style={{ margin: 0, fontFamily: 'var(--font-serif)', fontSize: '1.125rem', fontWeight: 500, color: 'var(--color-text)' }}>
-                                    {selectedChat.userId?.name}
+                                    {typeof selectedChat.userId === 'object' ? selectedChat.userId.name : 'Unknown user'}
                                 </h3>
-                                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-tertiary)' }}>{selectedChat.userId?.email}</span>
+                                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-tertiary)' }}>{typeof selectedChat.userId === 'object' ? selectedChat.userId.email : ''}</span>
                             </div>
                             <div style={{ flex: 1, padding: '1.25rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem', background: 'var(--color-parchment)' }}>
-                                {selectedChat.messages.map((msg: any, idx: number) => {
+                                {selectedChat.messages.map((msg: ChatMessage, idx: number) => {
                                     const isAdmin = msg.sender === 'admin';
                                     return (
                                         <div

@@ -1,15 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import axios from 'axios';
 import { sectionTitle, Pagination } from './shared';
+import { apiFetch, errorMessage, jsonBody } from '@/lib/api-client';
+import type { LeadRecord } from '@/types/domain';
+import type { LeadStatus } from '@/lib/constants';
 
 const ITEMS_PER_PAGE = 20;
 
 interface Props {
-    leads: any[];
+    leads: LeadRecord[];
     onDataChange: () => void;
 }
 
@@ -19,13 +21,16 @@ export default function AdminLeadsTab({ leads, onDataChange }: Props) {
     const totalPages = Math.ceil(leads.length / ITEMS_PER_PAGE);
     const paginatedLeads = leads.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
-    const handleUpdateLeadStatus = async (id: string, status: string) => {
+    const handleUpdateLeadStatus = async (id: string, status: LeadStatus) => {
         try {
-            await axios.put('/api/leads', { id, status });
+            await apiFetch('/api/leads', {
+                method: 'PUT',
+                body: jsonBody({ id, status }),
+            });
             toast.success('Lead status updated');
             onDataChange();
         } catch (error) {
-            toast.error('Failed to update status');
+            toast.error(errorMessage(error, 'Failed to update status'));
         }
     };
 
@@ -45,7 +50,7 @@ export default function AdminLeadsTab({ leads, onDataChange }: Props) {
                         </tr>
                     </thead>
                     <tbody>
-                        {paginatedLeads.map((lead: any) => (
+                        {paginatedLeads.map((lead) => (
                             <tr key={lead._id}>
                                 <td>{lead.name}</td>
                                 <td>
@@ -59,7 +64,7 @@ export default function AdminLeadsTab({ leads, onDataChange }: Props) {
                                         className="input-field"
                                         style={{ padding: '0.4rem 0.6rem', fontSize: '0.85rem', width: 'auto' }}
                                         value={lead.status || 'Not Completed'}
-                                        onChange={(e) => handleUpdateLeadStatus(lead._id, e.target.value)}
+                                        onChange={(e) => handleUpdateLeadStatus(lead._id, e.target.value as LeadStatus)}
                                     >
                                         <option value="Not Completed">Not completed</option>
                                         <option value="Completed">Completed</option>

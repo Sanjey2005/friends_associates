@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import axios from 'axios';
 import { Plus, X, Check, ChevronDown } from 'lucide-react';
 import {
     sectionTitle,
@@ -14,12 +13,14 @@ import {
     dropdownPanel,
     Pagination,
 } from './shared';
+import { apiFetch, errorMessage, jsonBody } from '@/lib/api-client';
+import type { UserRecord, VehicleRecord } from '@/types/domain';
 
 const ITEMS_PER_PAGE = 20;
 
 interface Props {
-    vehicles: any[];
-    users: any[];
+    vehicles: VehicleRecord[];
+    users: UserRecord[];
     onDataChange: () => void;
 }
 
@@ -50,7 +51,7 @@ export default function AdminVehiclesTab({ vehicles, users, onDataChange }: Prop
             (u.email || '').toLowerCase().includes(userSearch.toLowerCase()),
     );
 
-    const selectUserForVehicle = (user: any) => {
+    const selectUserForVehicle = (user: UserRecord) => {
         setNewVehicle({ ...newVehicle, userId: user._id });
         setUserSearch(user.name);
         setShowUserDropdown(false);
@@ -59,15 +60,17 @@ export default function AdminVehiclesTab({ vehicles, users, onDataChange }: Prop
     const handleAddVehicle = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const sanitizedVehicle = { ...newVehicle, regNumber: newVehicle.regNumber.replace(/\s+/g, '') };
-            await axios.post('/api/vehicles', sanitizedVehicle);
+            await apiFetch('/api/vehicles', {
+                method: 'POST',
+                body: jsonBody(newVehicle),
+            });
             setIsAddingVehicle(false);
             setNewVehicle({ userId: '', type: 'Car', vehicleModel: '', regNumber: '', details: '', boardType: 'Own Board' });
             setUserSearch('');
             toast.success('Vehicle added successfully');
             onDataChange();
-        } catch (error: any) {
-            toast.error(error.response?.data?.error || 'Failed to add vehicle');
+        } catch (error) {
+            toast.error(errorMessage(error, 'Failed to add vehicle'));
         }
     };
 
@@ -93,9 +96,9 @@ export default function AdminVehiclesTab({ vehicles, users, onDataChange }: Prop
                             </tr>
                         </thead>
                         <tbody>
-                            {paginatedVehicles.map((v: any) => (
+                            {paginatedVehicles.map((v) => (
                                 <tr key={v._id}>
-                                    <td>{v.userId?.name}</td>
+                                    <td>{typeof v.userId === 'object' ? v.userId.name : 'Unknown user'}</td>
                                     <td>{v.type}</td>
                                     <td>{v.vehicleModel}</td>
                                     <td>{v.regNumber}</td>
@@ -123,7 +126,7 @@ export default function AdminVehiclesTab({ vehicles, users, onDataChange }: Prop
                                 </div>
                                 {showUserDropdown && (
                                     <div style={dropdownPanel}>
-                                        {filteredUsers.length > 0 ? filteredUsers.map((u: any) => {
+                                        {filteredUsers.length > 0 ? filteredUsers.map((u) => {
                                             const selected = newVehicle.userId === u._id;
                                             return (
                                                 <div key={u._id} onClick={() => selectUserForVehicle(u)} style={{ padding: '0.75rem 0.9rem', cursor: 'pointer', background: selected ? 'var(--color-sand)' : 'transparent', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

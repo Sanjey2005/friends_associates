@@ -1,73 +1,61 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
-import crypto from 'crypto';
 import { sendEmail } from '@/lib/email';
 import { forgotPasswordSchema, parseBody } from '@/lib/validations';
 import { rateLimit, getClientIp, FORGOT_PASSWORD_LIMIT } from '@/lib/rate-limit';
+import { buildAppUrl, createToken, hashToken } from '@/lib/tokens';
+
+const GENERIC_MESSAGE = 'If an account exists, a password reset link has been sent to the registered email.';
 
 export async function POST(req: Request) {
     try {
-        // Rate limiting
         const ip = getClientIp(req);
         const rl = rateLimit(`forgot-pass:${ip}`, FORGOT_PASSWORD_LIMIT);
         if (!rl.allowed) {
             return NextResponse.json(
                 { error: `Too many attempts. Try again in ${rl.retryAfterSeconds} seconds.` },
-                { status: 429 }
+                { status: 429 },
             );
         }
 
         await dbConnect();
         const raw = await req.json();
-
-        // Validate input
         const parsed = parseBody(forgotPasswordSchema, raw);
         if (!parsed.success) {
             return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
+
         const { email, phone } = parsed.data;
-
-        let user;
-        if (email) {
-            user = await User.findOne({ email });
-        } else {
-            user = await User.findOne({ phone });
+        const user = email ? await User.findOne({ email }) : await User.findOne({ phone });
+        if (!user?.email) {
+            return NextResponse.json({ message: GENERIC_MESSAGE }, { status: 200 });
         }
 
-        if (!user) {
-            // Don't reveal if user exists
-            return NextResponse.json({ message: 'If an account exists, a password reset link has been sent to the registered email.' }, { status: 200 });
-        }
-
-        if (!user.email) {
-            return NextResponse.json({ error: 'No email found for this user. Please contact admin to reset password.' }, { status: 400 });
-        }
-
-        const targetEmail = user.email;
-
-        const resetToken = crypto.randomBytes(32).toString('hex');
-        const resetTokenExpiry = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour
-
-        user.resetPasswordToken = resetToken;
-        user.resetPasswordTokenExpiry = resetTokenExpiry;
+        const resetToken = createToken();
+        user.resetPasswordToken = hashToken(resetToken);
+        user.resetPasswordTokenExpiry = new Date(Date.now() + 60 * 60 * 1000);
         await user.save();
 
-        const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${resetToken}`;
+        const resetUrl = buildAppUrl('/reset-password', { token: resetToken });
+        try {
+            await sendEmail(
+                user.email,
+                'Reset your password - Friends Associates',
+                `
+                    <h1>Password Reset Request</h1>
+                    <p>You requested to reset your password. Please click the link below:</p>
+                    <p><a href="${resetUrl}">${resetUrl}</a></p>
+                    <p>This link will expire in 1 hour.</p>
+                    <p>If you did not request this, please ignore this email.</p>
+                `,
+            );
+        } catch (emailError) {
+            console.error('Password reset email error:', emailError);
+            return NextResponse.json({ message: GENERIC_MESSAGE }, { status: 200 });
+        }
 
-        await sendEmail(
-            targetEmail,
-            'Reset your password - Friends Associates',
-            `
-                <h1>Password Reset Request</h1>
-                <p>You requested to reset your password. Please click the link below to verify your email address:</p>
-                <a href="${resetUrl}">${resetUrl}</a>
-                <p>This link will expire in 1 hour.</p>
-                <p>If you did not request this, please ignore this email.</p>
-            `
-        );
-
-        return NextResponse.json({ message: 'If an account exists, a password reset link has been sent to the registered email.' }, { status: 200 });
+        return NextResponse.json({ message: GENERIC_MESSAGE }, { status: 200 });
     } catch (error) {
         console.error('Forgot password error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

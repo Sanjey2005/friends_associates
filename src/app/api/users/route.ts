@@ -1,28 +1,16 @@
 import { NextResponse } from 'next/server';
+import bcrypt from 'bcryptjs';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
-import { cookies } from 'next/headers';
-import { verifyAdminToken } from '@/lib/auth';
+import { requireAdmin } from '@/lib/server-auth';
 import { createUserSchema, updateUserSchema, deleteUserSchema, parseBody } from '@/lib/validations';
-import bcrypt from 'bcryptjs';
 
 export async function GET() {
-    await dbConnect();
-
-    // Admin Authentication
-    const cookieStore = await cookies();
-    const token = cookieStore.get('admin_token')?.value;
-
-    if (!token) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const admin = await verifyAdminToken(token);
-    if (!admin) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     try {
+        await dbConnect();
+        const auth = await requireAdmin();
+        if (!auth.ok) return auth.response;
+
         const users = await User.find({}).select('-password').sort({ createdAt: -1 });
         return NextResponse.json(users);
     } catch (error) {
@@ -34,42 +22,33 @@ export async function GET() {
 export async function POST(req: Request) {
     try {
         await dbConnect();
-
-        // Admin Authentication
-        const cookieStore = await cookies();
-        const token = cookieStore.get('admin_token')?.value;
-
-        if (!token || !verifyAdminToken(token)) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        const auth = await requireAdmin();
+        if (!auth.ok) return auth.response;
 
         const raw = await req.json();
-
-        // Validate input
         const parsed = parseBody(createUserSchema, raw);
         if (!parsed.success) {
             return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
-        const { name, phone, email } = parsed.data;
 
-        // Check if phone already exists
-        const existingUser = await User.findOne({ phone });
+        const { name, phone, email } = parsed.data;
+        const duplicateQuery = email ? { $or: [{ phone }, { email }] } : { phone };
+        const existingUser = await User.findOne(duplicateQuery);
         if (existingUser) {
-            return NextResponse.json({ error: 'User with this phone number already exists' }, { status: 400 });
+            return NextResponse.json({ error: 'A user with this phone number or email already exists' }, { status: 400 });
         }
 
-        // Default password is the phone number
         const hashedPassword = await bcrypt.hash(phone, 10);
-
         const user = await User.create({
             name,
             phone,
-            email: email || undefined, // Optional
+            email: email || undefined,
             password: hashedPassword,
-            isVerified: true, // Admin created users are verified
+            isVerified: true,
         });
 
-        return NextResponse.json({ message: 'User created successfully', user }, { status: 201 });
+        const safeUser = await User.findById(user._id).select('-password');
+        return NextResponse.json({ message: 'User created successfully', user: safeUser }, { status: 201 });
     } catch (error) {
         console.error('Create user error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
@@ -79,38 +58,33 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
     try {
         await dbConnect();
-        const cookieStore = await cookies();
-        const token = cookieStore.get('admin_token')?.value;
-
-        if (!token || !verifyAdminToken(token)) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        const auth = await requireAdmin();
+        if (!auth.ok) return auth.response;
 
         const raw = await req.json();
-
-        // Validate input
         const parsed = parseBody(updateUserSchema, raw);
         if (!parsed.success) {
             return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
-        // Use _id if id is not present (frontend sends _id)
-        const id = parsed.data.id || parsed.data._id;
-        const { name, phone, email } = parsed.data;
 
+        const id = parsed.data.id || parsed.data._id;
         if (!id) {
             return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
         }
 
-        // Check if phone exists for OTHER users
-        const existingUser = await User.findOne({ phone, _id: { $ne: id } });
+        const { name, phone, email } = parsed.data;
+        const duplicateQuery = email
+            ? { $or: [{ phone }, { email }], _id: { $ne: id } }
+            : { phone, _id: { $ne: id } };
+        const existingUser = await User.findOne(duplicateQuery);
         if (existingUser) {
-            return NextResponse.json({ error: 'Phone number already in use by another user' }, { status: 400 });
+            return NextResponse.json({ error: 'Phone number or email already in use by another user' }, { status: 400 });
         }
 
         const user = await User.findByIdAndUpdate(
             id,
             { name, phone, email: email || undefined },
-            { new: true }
+            { new: true },
         ).select('-password');
 
         if (!user) {
@@ -127,28 +101,17 @@ export async function PUT(req: Request) {
 export async function DELETE(req: Request) {
     try {
         await dbConnect();
-        const cookieStore = await cookies();
-        const token = cookieStore.get('admin_token')?.value;
-
-        if (!token || !verifyAdminToken(token)) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        const auth = await requireAdmin();
+        if (!auth.ok) return auth.response;
 
         const { searchParams } = new URL(req.url);
         const id = searchParams.get('id');
-
-        if (!id) {
-            return NextResponse.json({ error: 'User ID required' }, { status: 400 });
-        }
-
-        // Validate ID format
         const parsed = parseBody(deleteUserSchema, { id });
         if (!parsed.success) {
             return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
 
-        const user = await User.findByIdAndDelete(id);
-
+        const user = await User.findByIdAndDelete(parsed.data.id);
         if (!user) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }

@@ -1,26 +1,16 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
-import { verifyUserToken } from '@/lib/auth';
-import { cookies } from 'next/headers';
+import { requireUser } from '@/lib/server-auth';
 import { updateProfileSchema, parseBody } from '@/lib/validations';
 
 export async function GET() {
     try {
         await dbConnect();
-        const cookieStore = await cookies();
-        const token = cookieStore.get('token')?.value;
+        const auth = await requireUser();
+        if (!auth.ok) return auth.response;
 
-        if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        const decoded = verifyUserToken(token) as any;
-        if (!decoded || !decoded.id) {
-            return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-        }
-
-        const user = await User.findById(decoded.id).select('-password');
+        const user = await User.findById(auth.session.id).select('-password');
         if (!user) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
@@ -35,40 +25,26 @@ export async function GET() {
 export async function PUT(req: Request) {
     try {
         await dbConnect();
-        const cookieStore = await cookies();
-        const token = cookieStore.get('token')?.value;
-
-        if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        const decoded = verifyUserToken(token) as any;
-        if (!decoded || !decoded.id) {
-            return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-        }
+        const auth = await requireUser();
+        if (!auth.ok) return auth.response;
 
         const raw = await req.json();
-
-        // Validate input
         const parsed = parseBody(updateProfileSchema, raw);
         if (!parsed.success) {
             return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
-        const { name, email } = parsed.data;
 
-        const user = await User.findById(decoded.id);
+        const user = await User.findById(auth.session.id);
         if (!user) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
-        user.name = name;
-        if (email !== undefined) {
-            user.email = email;
-        }
-
+        user.name = parsed.data.name;
+        user.email = parsed.data.email || undefined;
         await user.save();
 
-        return NextResponse.json({ message: 'Profile updated successfully', user });
+        const safeUser = await User.findById(user._id).select('-password');
+        return NextResponse.json({ message: 'Profile updated successfully', user: safeUser });
     } catch (error) {
         console.error('Error updating profile:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

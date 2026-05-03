@@ -3,11 +3,11 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 export interface IAdmin extends Document {
     email: string;
     password: string;
-    role: string;
+    role: 'admin';
 }
 
 const AdminSchema: Schema = new Schema({
-    email: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true },
     role: { type: String, default: 'admin' },
 }, { timestamps: true });

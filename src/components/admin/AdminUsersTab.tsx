@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import toast from 'react-hot-toast';
-import axios from 'axios';
 import { Search, Edit, Plus, X, Trash2 } from 'lucide-react';
 import {
     sectionTitle,
@@ -13,11 +12,13 @@ import {
     modalActions,
     Pagination,
 } from './shared';
+import { apiFetch, errorMessage, jsonBody } from '@/lib/api-client';
+import type { UserRecord } from '@/types/domain';
 
 const ITEMS_PER_PAGE = 20;
 
 interface Props {
-    users: any[];
+    users: UserRecord[];
     onDataChange: () => void;
 }
 
@@ -25,7 +26,7 @@ export default function AdminUsersTab({ users, onDataChange }: Props) {
     const [searchTerm, setSearchTerm] = useState('');
     const [page, setPage] = useState(1);
     const [isCreatingUser, setIsCreatingUser] = useState(false);
-    const [editingUser, setEditingUser] = useState<any>(null);
+    const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
     const [newUser, setNewUser] = useState({ name: '', phone: '', email: '' });
 
     const filteredUsers = users.filter(
@@ -37,41 +38,46 @@ export default function AdminUsersTab({ users, onDataChange }: Props) {
     const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
     const paginatedUsers = filteredUsers.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
-    useEffect(() => { setPage(1); }, [searchTerm]);
-
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await axios.post('/api/users', newUser);
+            await apiFetch('/api/users', {
+                method: 'POST',
+                body: jsonBody(newUser),
+            });
             setIsCreatingUser(false);
             setNewUser({ name: '', phone: '', email: '' });
             toast.success('User created successfully');
             onDataChange();
-        } catch (error: any) {
-            toast.error(error.response?.data?.error || 'Failed to create user');
+        } catch (error) {
+            toast.error(errorMessage(error, 'Failed to create user'));
         }
     };
 
     const handleUpdateUser = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!editingUser) return;
         try {
-            await axios.put('/api/users', editingUser);
+            await apiFetch('/api/users', {
+                method: 'PUT',
+                body: jsonBody(editingUser),
+            });
             setEditingUser(null);
             toast.success('User updated successfully');
             onDataChange();
-        } catch (error: any) {
-            toast.error(error.response?.data?.error || 'Failed to update user');
+        } catch (error) {
+            toast.error(errorMessage(error, 'Failed to update user'));
         }
     };
 
     const handleDeleteUser = async (id: string) => {
         if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
         try {
-            await axios.delete(`/api/users?id=${id}`);
+            await apiFetch(`/api/users?id=${id}`, { method: 'DELETE' });
             toast.success('User deleted successfully');
             onDataChange();
         } catch (error) {
-            toast.error('Failed to delete user');
+            toast.error(errorMessage(error, 'Failed to delete user'));
         }
     };
 
@@ -87,7 +93,7 @@ export default function AdminUsersTab({ users, onDataChange }: Props) {
 
                 <div style={{ position: 'relative', maxWidth: '420px', marginBottom: '1.25rem' }}>
                     <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-tertiary)' }} />
-                    <input type="text" placeholder="Search by name or email…" className="input-field" style={{ paddingLeft: '2.5rem' }} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                    <input type="text" placeholder="Search by name or email…" className="input-field" style={{ paddingLeft: '2.5rem' }} value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }} />
                 </div>
 
                 <div className="table-container">
@@ -101,7 +107,7 @@ export default function AdminUsersTab({ users, onDataChange }: Props) {
                             </tr>
                         </thead>
                         <tbody>
-                            {paginatedUsers.map((user: any) => (
+                            {paginatedUsers.map((user) => (
                                 <tr key={user._id}>
                                     <td>{user.name}</td>
                                     <td>{user.email || '—'}</td>

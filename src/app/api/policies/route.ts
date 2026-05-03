@@ -1,28 +1,30 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import type { FilterQuery } from 'mongoose';
 import dbConnect from '@/lib/db';
-import Policy from '@/models/Policy';
+import Policy, { type IPolicy } from '@/models/Policy';
 import Vehicle from '@/models/Vehicle';
 import User from '@/models/User';
-import { verifyAdminToken, verifyUserToken } from '@/lib/auth';
+import { getOptionalUser, requireAdmin } from '@/lib/server-auth';
 import { createPolicySchema, updatePolicySchema, parseBody } from '@/lib/validations';
+
+interface PolicySearchView {
+    userId?: { name?: string; email?: string; phone?: string };
+    vehicleId?: { regNumber?: string };
+}
 
 export async function GET(req: Request) {
     try {
         await dbConnect();
-        const cookieStore = await cookies();
-        const adminToken = cookieStore.get('admin_token')?.value;
-        const userToken = cookieStore.get('token')?.value;
-
         const { searchParams } = new URL(req.url);
         const scope = searchParams.get('scope');
 
-        if (scope === 'admin' && adminToken && verifyAdminToken(adminToken)) {
-            // Admin: Return all policies with filters
-            const expiryFilter = searchParams.get('expiry'); // 'active', 'expired', 'soon'
-            const search = searchParams.get('search');
+        if (scope === 'admin') {
+            const auth = await requireAdmin();
+            if (!auth.ok) return auth.response;
 
-            let query: any = {};
+            const expiryFilter = searchParams.get('expiry');
+            const search = searchParams.get('search')?.trim();
+            const query: FilterQuery<IPolicy> = {};
 
             if (expiryFilter) {
                 const now = new Date();
@@ -42,15 +44,15 @@ export async function GET(req: Request) {
                 .populate({ path: 'vehicleId', model: Vehicle, select: 'type vehicleModel regNumber' })
                 .sort({ expiryDate: 1 });
 
-            // In-memory search filter if search param exists
             if (search) {
                 const searchLower = search.toLowerCase();
-                const filtered = policies.filter((p: any) => {
+                const filtered = policies.filter((policy) => {
+                    const item = policy as unknown as PolicySearchView;
                     return (
-                        p.userId?.name?.toLowerCase().includes(searchLower) ||
-                        p.userId?.email?.toLowerCase().includes(searchLower) ||
-                        p.userId?.phone?.includes(search) ||
-                        p.vehicleId?.regNumber?.toLowerCase().includes(searchLower)
+                        item.userId?.name?.toLowerCase().includes(searchLower) ||
+                        item.userId?.email?.toLowerCase().includes(searchLower) ||
+                        item.userId?.phone?.includes(search) ||
+                        item.vehicleId?.regNumber?.toLowerCase().includes(searchLower)
                     );
                 });
                 return NextResponse.json(filtered);
@@ -59,18 +61,15 @@ export async function GET(req: Request) {
             return NextResponse.json(policies);
         }
 
-        if (userToken) {
-            const user = verifyUserToken(userToken);
-            if (user && typeof user !== 'string' && 'id' in user) {
-                // User: Return own policies (restricted fields)
-                const policies = await Policy.find({ userId: user.id })
-                    .populate({ path: 'vehicleId', model: Vehicle, select: 'type vehicleModel regNumber' })
-                    .select('vehicleId policyLink expiryDate status'); // Only allowed fields
-                return NextResponse.json(policies);
-            }
+        const user = await getOptionalUser();
+        if (!user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const policies = await Policy.find({ userId: user.id })
+            .populate({ path: 'vehicleId', model: Vehicle, select: 'type vehicleModel regNumber' })
+            .select('vehicleId policyLink expiryDate status');
+        return NextResponse.json(policies);
     } catch (error) {
         console.error('Get policies error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -80,19 +79,18 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
     try {
         await dbConnect();
-        const cookieStore = await cookies();
-        const adminToken = cookieStore.get('admin_token')?.value;
-
-        if (!adminToken || !verifyAdminToken(adminToken)) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        const auth = await requireAdmin();
+        if (!auth.ok) return auth.response;
 
         const raw = await req.json();
-
-        // Validate input — only whitelisted fields are accepted
         const parsed = parseBody(createPolicySchema, raw);
         if (!parsed.success) {
             return NextResponse.json({ error: parsed.error }, { status: 400 });
+        }
+
+        const vehicle = await Vehicle.findOne({ _id: parsed.data.vehicleId, userId: parsed.data.userId });
+        if (!vehicle) {
+            return NextResponse.json({ error: 'Vehicle does not belong to the selected user' }, { status: 400 });
         }
 
         const policy = await Policy.create(parsed.data);
@@ -108,29 +106,22 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
     try {
         await dbConnect();
-        const cookieStore = await cookies();
-        const adminToken = cookieStore.get('admin_token')?.value;
-
-        if (!adminToken || !verifyAdminToken(adminToken)) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        const auth = await requireAdmin();
+        if (!auth.ok) return auth.response;
 
         const raw = await req.json();
-
-        // Validate input — only whitelisted fields are accepted
         const parsed = parseBody(updatePolicySchema, raw);
         if (!parsed.success) {
             return NextResponse.json({ error: parsed.error }, { status: 400 });
         }
-        const { id, policyLink, expiryDate, notes } = parsed.data;
 
-        const updateData: any = {};
-        if (policyLink !== undefined) updateData.policyLink = policyLink;
-        if (expiryDate !== undefined) updateData.expiryDate = expiryDate;
-        if (notes !== undefined) updateData.notes = notes;
+        const { id, policyLink, expiryDate, notes } = parsed.data;
+        const updateData: Partial<Pick<IPolicy, 'policyLink' | 'expiryDate' | 'notes'>> = {};
+        if (policyLink !== undefined) updateData.policyLink = policyLink || undefined;
+        if (expiryDate !== undefined) updateData.expiryDate = new Date(expiryDate);
+        if (notes !== undefined) updateData.notes = notes || undefined;
 
         const policy = await Policy.findByIdAndUpdate(id, updateData, { new: true });
-
         if (!policy) {
             return NextResponse.json({ error: 'Policy not found' }, { status: 404 });
         }

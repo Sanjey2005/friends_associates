@@ -1,16 +1,11 @@
 import React from 'react';
+import type { AdminData as DomainAdminData } from '@/types/domain';
 
 // ============================================================
 // Shared types
 // ============================================================
 
-export interface AdminData {
-    policies: any[];
-    leads: any[];
-    users: any[];
-    vehicles: any[];
-    chats: any[];
-}
+export type AdminData = DomainAdminData;
 
 export interface PaginationMeta {
     page: number;

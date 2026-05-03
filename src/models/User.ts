@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IUser extends Document {
-    email: string;
+    email?: string;
     password?: string;
     name: string;
     phone: string;
@@ -14,14 +14,14 @@ export interface IUser extends Document {
 }
 
 const UserSchema: Schema = new Schema({
-    email: { type: String, sparse: true, index: true },
+    email: { type: String, sparse: true, index: true, unique: true, lowercase: true, trim: true },
     password: { type: String },
     name: { type: String, required: true },
-    phone: { type: String, required: true, unique: true },
+    phone: { type: String, required: true, unique: true, trim: true },
     isVerified: { type: Boolean, default: false },
-    verificationToken: { type: String },
+    verificationToken: { type: String, select: false },
     verificationTokenExpiry: { type: Date },
-    resetPasswordToken: { type: String },
+    resetPasswordToken: { type: String, select: false },
     resetPasswordTokenExpiry: { type: Date },
 }, { timestamps: true });
 

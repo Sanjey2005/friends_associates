@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -21,6 +20,8 @@ import {
     Mail,
     MessageCircle,
 } from 'lucide-react';
+import { apiFetch } from '@/lib/api-client';
+import type { AdminData, ChatRecord, LeadRecord, PolicyRecord, UserRecord, VehicleRecord } from '@/types/domain';
 
 const tabConfig: { id: string; label: string; icon: React.ComponentType<{ size?: number }> }[] = [
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
@@ -35,7 +36,7 @@ export default function AdminDashboard() {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('analytics');
     const [loading, setLoading] = useState(true);
-    const [data, setData] = useState<{ policies: any[]; leads: any[]; users: any[]; vehicles: any[]; chats: any[] }>({
+    const [data, setData] = useState<AdminData>({
         policies: [],
         leads: [],
         users: [],
@@ -45,20 +46,20 @@ export default function AdminDashboard() {
 
     const fetchData = useCallback(async () => {
         try {
-            const [policiesRes, leadsRes, vehiclesRes, usersRes, chatsRes] = await Promise.all([
-                axios.get('/api/policies?scope=admin', { withCredentials: true }),
-                axios.get('/api/leads', { withCredentials: true }),
-                axios.get('/api/vehicles?scope=admin', { withCredentials: true }),
-                axios.get('/api/users', { withCredentials: true }),
-                axios.get('/api/chat?scope=admin', { withCredentials: true }),
+            const [policies, leads, vehicles, users, chats] = await Promise.all([
+                apiFetch<PolicyRecord[]>('/api/policies?scope=admin'),
+                apiFetch<LeadRecord[]>('/api/leads'),
+                apiFetch<VehicleRecord[]>('/api/vehicles?scope=admin'),
+                apiFetch<UserRecord[]>('/api/users'),
+                apiFetch<ChatRecord[]>('/api/chat?scope=admin'),
             ]);
 
             setData({
-                policies: policiesRes.data,
-                leads: leadsRes.data,
-                users: usersRes.data,
-                vehicles: vehiclesRes.data,
-                chats: chatsRes.data,
+                policies,
+                leads,
+                users,
+                vehicles,
+                chats,
             });
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -72,8 +73,8 @@ export default function AdminDashboard() {
         fetchData();
     }, [fetchData]);
 
-    const handleLogout = () => {
-        document.cookie = 'admin_token=; Max-Age=0; path=/;';
+    const handleLogout = async () => {
+        await apiFetch('/api/auth/admin/logout', { method: 'POST' });
         router.push('/login/admin');
     };
 
