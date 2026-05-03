@@ -8,7 +8,7 @@ import type { Metadata } from 'next';
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://friendsassociates.in';
 
 export const metadata: Metadata = {
-    title: 'Car, Bike, Health, Life And Business Insurance Services',
+    title: 'Services',
     description:
         'Explore Friends Associates insurance services in Coimbatore, including car, bike, health, home, commercial, and life insurance with renewal and claims guidance.',
     alternates: {

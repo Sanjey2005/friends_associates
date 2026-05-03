@@ -23,8 +23,8 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'Friends Associates Insurance | Insurance Services in Coimbatore',
-    template: '%s | Friends Associates Insurance',
+    default: 'Friends Associates',
+    template: '%s | Friends Associates',
   },
   description:
     'Friends Associates offers car, bike, health, home, commercial, and life insurance support in Coimbatore with renewals, claims guidance, and trusted insurer options.',
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     locale: 'en_IN',
     url: '/',
     siteName: 'Friends Associates Insurance',
-    title: 'Friends Associates Insurance | Insurance Services in Coimbatore',
+    title: 'Friends Associates Insurance Services in Coimbatore',
     description:
       'Local insurance support in Coimbatore for vehicles, health, life, home, and business coverage.',
     images: [
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary',
-    title: 'Friends Associates Insurance | Insurance Services in Coimbatore',
+    title: 'Friends Associates Insurance Services in Coimbatore',
     description:
       'Car, bike, health, life, home, and commercial insurance support from Friends Associates in Coimbatore.',
     images: ['/logo.png'],
