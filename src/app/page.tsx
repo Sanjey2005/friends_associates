@@ -5,33 +5,89 @@ import AnimatedHero from '@/components/AnimatedHero';
 import PartnersCarousel from '@/components/PartnersCarousel';
 import Link from 'next/link';
 import { Shield, Clock, Award, Wallet, ArrowRight } from 'lucide-react';
+import type { Metadata } from 'next';
+
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://friendsassociates.in';
+
+export const metadata: Metadata = {
+  title: 'Insurance Services in Coimbatore',
+  description:
+    'Friends Associates provides car, bike, health, home, commercial, and life insurance support in Coimbatore, including quotes, renewals, claims guidance, and trusted insurer options.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'Friends Associates Insurance Services in Coimbatore',
+    description:
+      'Local insurance guidance for families, vehicle owners, and businesses in Coimbatore since 2020.',
+    url: '/',
+  },
+};
+
+const localBusinessJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'InsuranceAgency',
+  name: 'Friends Associates',
+  url: siteUrl,
+  logo: `${siteUrl}/logo.png`,
+  image: `${siteUrl}/logo.png`,
+  telephone: '+918220016649',
+  foundingDate: '2020',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Ho.187 Raju Naidu street, Dr Radhakrishna St, near Omni Bus stand',
+    addressLocality: 'Coimbatore',
+    addressRegion: 'Tamil Nadu',
+    postalCode: '641012',
+    addressCountry: 'IN',
+  },
+  areaServed: {
+    '@type': 'City',
+    name: 'Coimbatore',
+  },
+  priceRange: '$$',
+  serviceType: [
+    'Car insurance',
+    'Bike insurance',
+    'Health insurance',
+    'Home insurance',
+    'Commercial insurance',
+    'Life insurance',
+    'Insurance renewal support',
+    'Claims guidance',
+  ],
+};
 
 export default function Home() {
   const features = [
     {
       icon: <Shield size={28} />,
-      title: 'Personalized Service',
-      desc: 'We take the time to understand your unique needs and craft coverage that fits your life.',
+      title: 'Local Insurance Guidance',
+      desc: 'Coimbatore-based support for choosing car, bike, health, life, home, and business coverage with confidence.',
     },
     {
       icon: <Clock size={28} />,
-      title: 'Fast Claims Processing',
-      desc: 'Our streamlined claims process ensures you get the support you need, when you need it.',
+      title: 'Renewal Reminders',
+      desc: 'We help you stay ahead of policy expiry dates so your vehicle and family protection do not lapse.',
     },
     {
       icon: <Award size={28} />,
-      title: 'Comprehensive Coverage',
-      desc: 'Policies that cover every meaningful aspect of your insurance needs — nothing left to chance.',
+      title: 'Claims Guidance',
+      desc: 'From documents to insurer coordination, our team guides you through the claim process when support matters most.',
     },
     {
       icon: <Wallet size={28} />,
-      title: 'Competitive Rates',
-      desc: 'Partnerships with top providers let us offer the best coverage at thoughtful prices.',
+      title: 'Trusted Insurer Options',
+      desc: 'Partnerships with leading Indian insurers help us compare thoughtful plans for your budget and needs.',
     },
   ];
 
   return (
     <main style={{ minHeight: '100vh', background: 'var(--color-parchment)' }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }}
+      />
       <Navbar />
 
       <AnimatedHero />
@@ -60,7 +116,7 @@ export default function Home() {
                 letterSpacing: '-0.01em',
               }}
             >
-              Coverage that reads like a thoughtful letter.
+              Insurance support for Coimbatore families, vehicles, and businesses.
             </h2>
             <p
               style={{
@@ -69,8 +125,8 @@ export default function Home() {
                 lineHeight: 1.6,
               }}
             >
-              Five years of experience in the Indian insurance industry, and every conversation
-              still starts the same way: what matters to you?
+              Since 2020, Friends Associates has helped customers compare policies, manage
+              renewals, understand claims, and choose cover from trusted insurance providers.
             </p>
           </div>
 
@@ -142,7 +198,7 @@ export default function Home() {
                 fontSize: '1rem',
               }}
             >
-              Explore our services
+              View insurance services
               <ArrowRight size={18} />
             </Link>
           </div>
@@ -171,7 +227,7 @@ export default function Home() {
                 letterSpacing: '-0.01em',
               }}
             >
-              Tell us a little about you.
+              Tell us what you want to protect.
             </h2>
           </div>
           <QuoteForm />

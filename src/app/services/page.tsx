@@ -1,38 +1,136 @@
 import Navbar from '@/components/Navbar';
-import { Car, Bike, Heart, Home as HomeIcon, Briefcase, Umbrella } from 'lucide-react';
+import { Car, Bike, Heart, Home as HomeIcon, Briefcase, Umbrella, ArrowRight } from 'lucide-react';
 import Footer from '@/components/Footer';
+import Link from 'next/link';
+import type { Metadata } from 'next';
+
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://friendsassociates.in';
+
+export const metadata: Metadata = {
+    title: 'Car, Bike, Health, Life And Business Insurance Services',
+    description:
+        'Explore Friends Associates insurance services in Coimbatore, including car, bike, health, home, commercial, and life insurance with renewal and claims guidance.',
+    alternates: {
+        canonical: '/services',
+    },
+    openGraph: {
+        title: 'Insurance Services in Coimbatore | Friends Associates',
+        description:
+            'Compare car, bike, health, home, commercial, and life insurance options with local support from Friends Associates.',
+        url: '/services',
+    },
+};
+
+const faqs = [
+    {
+        question: 'Which documents are usually needed for vehicle insurance?',
+        answer:
+            'For vehicle insurance, customers typically need registration details, previous policy information if available, owner details, and vehicle information such as model and manufacturing year.',
+    },
+    {
+        question: 'Can Friends Associates help with an expired policy?',
+        answer:
+            'Yes. The team can review the expired policy details, explain available renewal or fresh policy options, and guide customers through the next steps.',
+    },
+    {
+        question: 'Do you help customers compare multiple insurers?',
+        answer:
+            'Yes. Friends Associates works with leading Indian insurers and helps customers compare suitable coverage options based on their budget, vehicle, family, or business needs.',
+    },
+    {
+        question: 'Do you provide claims guidance?',
+        answer:
+            'Yes. Friends Associates guides customers on claim documentation, insurer coordination, and the practical steps needed after an incident.',
+    },
+];
+
+const servicesJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Friends Associates Insurance Services',
+    url: `${siteUrl}/services`,
+    itemListElement: [
+        'Car Insurance',
+        'Bike Insurance',
+        'Health Insurance',
+        'Home Insurance',
+        'Commercial Insurance',
+        'Life Insurance',
+    ].map((name, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        item: {
+            '@type': 'Service',
+            name,
+            provider: {
+                '@type': 'InsuranceAgency',
+                name: 'Friends Associates',
+                url: siteUrl,
+            },
+            areaServed: {
+                '@type': 'City',
+                name: 'Coimbatore',
+            },
+        },
+    })),
+};
+
+const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+        '@type': 'Question',
+        name: faq.question,
+        acceptedAnswer: {
+            '@type': 'Answer',
+            text: faq.answer,
+        },
+    })),
+};
 
 export default function Services() {
     const insurances = [
         {
             name: 'Car Insurance',
             icon: <Car size={28} />,
-            desc: 'Comprehensive coverage for your four-wheeler against accidents, theft, and third-party liabilities.',
+            desc: 'Coverage guidance for accidents, theft, third-party liability, own damage, renewals, and claim support for private cars.',
+            bestFor: 'Private car owners and renewal customers',
+            cta: 'Get car quote',
         },
         {
             name: 'Bike Insurance',
             icon: <Bike size={28} />,
-            desc: 'Protect your two-wheeler with our affordable plans covering damages and legal liabilities.',
+            desc: 'Affordable two-wheeler plans for third-party compliance, own damage protection, renewals, and everyday road risks.',
+            bestFor: 'Scooter and motorcycle owners',
+            cta: 'Renew bike policy',
         },
         {
             name: 'Health Insurance',
             icon: <Heart size={28} />,
-            desc: "Secure your family's health with cashless treatments and coverage for medical emergencies.",
+            desc: "Family and individual health cover guidance for medical emergencies, cashless treatment options, and long-term protection.",
+            bestFor: 'Families, individuals, and senior members',
+            cta: 'Ask about health plans',
         },
         {
             name: 'Home Insurance',
             icon: <HomeIcon size={28} />,
-            desc: 'Safeguard your home and belongings against natural calamities, theft, and fire.',
+            desc: 'Protection options for homes and belongings against fire, theft, natural calamities, and unexpected household losses.',
+            bestFor: 'Homeowners and property residents',
+            cta: 'Protect your home',
         },
         {
             name: 'Commercial Insurance',
             icon: <Briefcase size={28} />,
-            desc: 'Tailored solutions for your business vehicles, assets, and liability protection.',
+            desc: 'Business-focused support for commercial vehicles, assets, liability protection, and policy renewals for daily operations.',
+            bestFor: 'Small businesses and fleet owners',
+            cta: 'Get business cover',
         },
         {
             name: 'Life Insurance',
             icon: <Umbrella size={28} />,
-            desc: 'Ensure financial security for your loved ones with our term and endowment plans.',
+            desc: 'Life cover guidance for financial security, term plans, savings-oriented options, and family protection goals.',
+            bestFor: 'Income earners and families planning ahead',
+            cta: 'Discuss life cover',
         },
     ];
 
@@ -51,6 +149,14 @@ export default function Services() {
 
     return (
         <main style={{ minHeight: '100vh', background: 'var(--color-parchment)' }}>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(servicesJsonLd) }}
+            />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+            />
             <Navbar />
 
             {/* Hero — Parchment */}
@@ -87,7 +193,8 @@ export default function Services() {
                             lineHeight: 1.6,
                         }}
                     >
-                        Comprehensive insurance solutions tailored to protect what matters most to you.
+                        Car, bike, health, home, commercial, and life insurance support in Coimbatore,
+                        with renewal reminders, claims guidance, and trusted insurer options.
                     </p>
                 </div>
             </section>
@@ -149,10 +256,37 @@ export default function Services() {
                                     color: 'var(--color-text-secondary)',
                                     lineHeight: 1.6,
                                     fontSize: '0.95rem',
+                                    marginBottom: '1rem',
                                 }}
                             >
                                 {item.desc}
                             </p>
+
+                            <p
+                                style={{
+                                    color: 'var(--color-text-button-light)',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 500,
+                                    marginBottom: '1.25rem',
+                                }}
+                            >
+                                Best for: {item.bestFor}
+                            </p>
+
+                            <Link
+                                href="/#quote"
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.4rem',
+                                    color: 'var(--color-terracotta)',
+                                    fontSize: '0.9rem',
+                                    fontWeight: 500,
+                                }}
+                            >
+                                {item.cta}
+                                <ArrowRight size={15} />
+                            </Link>
                         </div>
                     ))}
                 </div>
@@ -212,6 +346,68 @@ export default function Services() {
                                 }}
                             >
                                 {company}
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                <section style={{ marginTop: '6rem' }}>
+                    <div style={{ textAlign: 'center', marginBottom: '3rem', maxWidth: '640px', margin: '0 auto 3rem' }}>
+                        <div className="eyebrow" style={{ marginBottom: '0.75rem' }}>
+                            Common questions
+                        </div>
+                        <h2
+                            style={{
+                                fontFamily: 'var(--font-serif)',
+                                fontSize: 'clamp(1.75rem, 3.5vw, 2.5rem)',
+                                fontWeight: 500,
+                                color: 'var(--color-text)',
+                                lineHeight: 1.15,
+                                letterSpacing: '-0.01em',
+                            }}
+                        >
+                            Insurance decisions, made clearer.
+                        </h2>
+                    </div>
+
+                    <div
+                        style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                            gap: '1rem',
+                        }}
+                    >
+                        {faqs.map((faq) => (
+                            <div
+                                key={faq.question}
+                                style={{
+                                    background: 'var(--color-ivory)',
+                                    border: '1px solid var(--color-border)',
+                                    borderRadius: 'var(--radius-lg)',
+                                    padding: '1.5rem',
+                                }}
+                            >
+                                <h3
+                                    style={{
+                                        fontFamily: 'var(--font-serif)',
+                                        fontSize: '1.125rem',
+                                        fontWeight: 500,
+                                        color: 'var(--color-text)',
+                                        lineHeight: 1.3,
+                                        marginBottom: '0.625rem',
+                                    }}
+                                >
+                                    {faq.question}
+                                </h3>
+                                <p
+                                    style={{
+                                        color: 'var(--color-text-secondary)',
+                                        lineHeight: 1.6,
+                                        fontSize: '0.95rem',
+                                    }}
+                                >
+                                    {faq.answer}
+                                </p>
                             </div>
                         ))}
                     </div>

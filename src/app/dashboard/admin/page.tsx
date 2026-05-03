@@ -184,7 +184,12 @@ export default function AdminDashboard() {
                 </div>
 
                 {activeTab === 'analytics' && (
-                    <AdminAnalytics policies={data.policies} leads={data.leads} vehicles={data.vehicles} />
+                    <AdminAnalytics
+                        policies={data.policies}
+                        leads={data.leads}
+                        vehicles={data.vehicles}
+                        chats={data.chats}
+                    />
                 )}
 
                 {activeTab === 'policies' && (

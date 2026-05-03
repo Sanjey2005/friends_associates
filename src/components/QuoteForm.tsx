@@ -75,7 +75,7 @@ export default function QuoteForm() {
                         lineHeight: 1.15,
                     }}
                 >
-                    Get in Touch
+                    Get a Quote
                 </h2>
                 <p
                     style={{
@@ -86,8 +86,8 @@ export default function QuoteForm() {
                         margin: '0 auto',
                     }}
                 >
-                    Share a few details and our team will reach out with tailored
-                    insurance options for your needs.
+                    Share a few details and our Coimbatore team will help compare suitable
+                    insurance options for your vehicle, family, home, or business.
                 </p>
             </div>
 

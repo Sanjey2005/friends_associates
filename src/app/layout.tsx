@@ -3,6 +3,8 @@ import { Fraunces, Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
 
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://friendsassociates.in';
+
 const fraunces = Fraunces({
   subsets: ['latin'],
   weight: ['400', '500'],
@@ -18,8 +20,57 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Friends Associates Insurance',
-  description: 'Thoughtful, tailored insurance solutions from Friends Associates.',
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: 'Friends Associates Insurance | Insurance Services in Coimbatore',
+    template: '%s | Friends Associates Insurance',
+  },
+  description:
+    'Friends Associates offers car, bike, health, home, commercial, and life insurance support in Coimbatore with renewals, claims guidance, and trusted insurer options.',
+  keywords: [
+    'Friends Associates',
+    'insurance services in Coimbatore',
+    'car insurance Coimbatore',
+    'bike insurance Coimbatore',
+    'health insurance Coimbatore',
+    'life insurance Coimbatore',
+    'commercial vehicle insurance',
+    'insurance renewal support',
+  ],
+  authors: [{ name: 'Friends Associates' }],
+  creator: 'Friends Associates',
+  publisher: 'Friends Associates',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_IN',
+    url: '/',
+    siteName: 'Friends Associates Insurance',
+    title: 'Friends Associates Insurance | Insurance Services in Coimbatore',
+    description:
+      'Local insurance support in Coimbatore for vehicles, health, life, home, and business coverage.',
+    images: [
+      {
+        url: '/logo.png',
+        width: 512,
+        height: 512,
+        alt: 'Friends Associates logo',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Friends Associates Insurance | Insurance Services in Coimbatore',
+    description:
+      'Car, bike, health, life, home, and commercial insurance support from Friends Associates in Coimbatore.',
+    images: ['/logo.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

@@ -8,7 +8,7 @@ import Link from 'next/link';
 export default function AnimatedHero() {
     const [titleNumber, setTitleNumber] = useState(0);
     const titles = useMemo(
-        () => ['thoughtful', 'personal', 'tailored', 'trusted', 'unhurried'],
+        () => ['local', 'personal', 'practical', 'trusted', 'timely'],
         []
     );
 
@@ -116,9 +116,9 @@ export default function AnimatedHero() {
                         margin: 0,
                     }}
                 >
-                    Protect what matters most with coverage crafted around your life —
-                    Friends Associates has been guiding families and businesses through
-                    India&apos;s insurance landscape for five years.
+                    Coimbatore-based insurance support for cars, bikes, health, life, homes,
+                    and businesses — with quotes, renewals, claims guidance, and trusted
+                    insurer options since 2020.
                 </p>
 
                 <div
@@ -134,7 +134,7 @@ export default function AnimatedHero() {
                         className="btn btn-outline"
                         style={{ padding: '0.875rem 1.5rem', fontSize: '1rem' }}
                     >
-                        Jump on a call
+                        Call an advisor
                         <PhoneCall size={18} />
                     </a>
                     <Link
@@ -142,7 +142,7 @@ export default function AnimatedHero() {
                         className="btn btn-primary"
                         style={{ padding: '0.875rem 1.5rem', fontSize: '1rem' }}
                     >
-                        Get a free quote
+                        Request a quote
                         <ArrowRight size={18} />
                     </Link>
                 </div>
