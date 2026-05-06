@@ -1,8 +1,12 @@
 /**
  * In-memory rate limiter for Next.js API routes.
  *
- * Uses a sliding-window counter per key (usually IP address).
- * For multi-instance deployments, swap this for a Redis-backed solution.
+ * Uses a fixed-window counter per key (usually IP address).
+ *
+ * ⚠️  PRODUCTION NOTE: This store is per-process. On Vercel serverless each
+ * function instance has its own memory, so rate limits are NOT shared across
+ * instances and reset on cold starts. For strict enforcement under load,
+ * replace this with a Redis-backed solution (e.g. Upstash + @upstash/ratelimit).
  */
 
 interface RateLimitEntry {
@@ -11,6 +15,10 @@ interface RateLimitEntry {
 }
 
 const store = new Map<string, RateLimitEntry>();
+
+// Hard cap on store size — evict oldest half if we exceed 10 000 entries
+// to prevent unbounded memory growth on a busy single instance.
+const MAX_STORE_SIZE = 10_000;
 
 // Periodically clean stale entries to avoid memory leaks
 const CLEANUP_INTERVAL_MS = 60_000; // 1 minute
@@ -23,6 +31,15 @@ function cleanup() {
     for (const [key, entry] of store) {
         if (now > entry.resetAt) {
             store.delete(key);
+        }
+    }
+    // If still over limit after stale cleanup, evict oldest entries
+    if (store.size > MAX_STORE_SIZE) {
+        const excess = store.size - Math.floor(MAX_STORE_SIZE / 2);
+        let evicted = 0;
+        for (const key of store.keys()) {
+            store.delete(key);
+            if (++evicted >= excess) break;
         }
     }
 }

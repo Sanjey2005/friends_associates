@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
+import Vehicle from '@/models/Vehicle';
+import Policy from '@/models/Policy';
+import Chat from '@/models/Chat';
 import { requireAdmin } from '@/lib/server-auth';
 import { createUserSchema, updateUserSchema, deleteUserSchema, parseBody } from '@/lib/validations';
 
@@ -115,6 +118,13 @@ export async function DELETE(req: Request) {
         if (!user) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
+
+        // Cascade: remove all data belonging to this user
+        await Promise.all([
+            Vehicle.deleteMany({ userId: parsed.data.id }),
+            Policy.deleteMany({ userId: parsed.data.id }),
+            Chat.deleteMany({ userId: parsed.data.id }),
+        ]);
 
         return NextResponse.json({ message: 'User deleted successfully' });
     } catch (error) {

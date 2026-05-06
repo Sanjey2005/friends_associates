@@ -77,7 +77,7 @@ export async function POST(req: Request) {
             const chat = await Chat.findOneAndUpdate(
                 { userId },
                 {
-                    $push: { messages: { sender: 'admin', text, timestamp: new Date() } },
+                    $push: { messages: { $each: [{ sender: 'admin', text, timestamp: new Date() }], $slice: -500 } },
                     $set: { lastUpdated: new Date() },
                 },
                 { new: true, upsert: true },
@@ -93,7 +93,7 @@ export async function POST(req: Request) {
         const chat = await Chat.findOneAndUpdate(
             { userId: user.id },
             {
-                $push: { messages: { sender: 'user', text, timestamp: new Date() } },
+                $push: { messages: { $each: [{ sender: 'user', text, timestamp: new Date() }], $slice: -500 } },
                 $set: { lastUpdated: new Date() },
             },
             { new: true, upsert: true },

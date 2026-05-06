@@ -9,12 +9,7 @@ export function hashToken(token: string) {
 }
 
 export function tokenLookup(field: string, token: string) {
-    return {
-        $or: [
-            { [field]: hashToken(token) },
-            { [field]: token },
-        ],
-    };
+    return { [field]: hashToken(token) };
 }
 
 export function buildAppUrl(path: string, params: Record<string, string>) {
