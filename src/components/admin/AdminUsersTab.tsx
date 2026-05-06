@@ -28,6 +28,7 @@ export default function AdminUsersTab({ users, onDataChange }: Props) {
     const [isCreatingUser, setIsCreatingUser] = useState(false);
     const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
     const [newUser, setNewUser] = useState({ name: '', phone: '', email: '' });
+    const [createdTempPassword, setCreatedTempPassword] = useState<string | null>(null);
 
     const filteredUsers = users.filter(
         (u) =>
@@ -41,12 +42,12 @@ export default function AdminUsersTab({ users, onDataChange }: Props) {
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await apiFetch('/api/users', {
+            const result = await apiFetch<{ message: string; tempPassword?: string }>('/api/users', {
                 method: 'POST',
                 body: jsonBody(newUser),
             });
-            setIsCreatingUser(false);
             setNewUser({ name: '', phone: '', email: '' });
+            setCreatedTempPassword(result.tempPassword ?? null);
             toast.success('User created successfully');
             onDataChange();
         } catch (error) {
@@ -134,26 +135,39 @@ export default function AdminUsersTab({ users, onDataChange }: Props) {
             {isCreatingUser && (
                 <div style={modalOverlay}>
                     <div style={modalCard}>
-                        <button onClick={() => setIsCreatingUser(false)} aria-label="Close modal" style={modalCloseButton}><X size={20} /></button>
+                        <button onClick={() => { setIsCreatingUser(false); setCreatedTempPassword(null); }} aria-label="Close modal" style={modalCloseButton}><X size={20} /></button>
                         <h3 style={modalTitle}>Create new user</h3>
-                        <form onSubmit={handleCreateUser}>
-                            <div className="input-group">
-                                <label className="input-label">Name</label>
-                                <input type="text" className="input-field" value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} required />
-                            </div>
-                            <div className="input-group">
-                                <label className="input-label">Phone number (login ID)</label>
-                                <input type="tel" className="input-field" value={newUser.phone} onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })} required />
-                            </div>
-                            <div className="input-group">
-                                <label className="input-label">Email (optional)</label>
-                                <input type="email" className="input-field" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} />
-                            </div>
-                            <div style={modalActions}>
-                                <button type="button" className="btn btn-outline" onClick={() => setIsCreatingUser(false)}>Cancel</button>
-                                <button type="submit" className="btn btn-primary">Create user</button>
-                            </div>
-                        </form>
+                        {createdTempPassword ? (
+                            <>
+                                <div style={{ background: 'rgba(201,100,66,0.08)', border: '1px solid rgba(201,100,66,0.3)', borderRadius: '8px', padding: '1.25rem', marginBottom: '1.25rem' }}>
+                                    <p style={{ fontWeight: 600, marginBottom: '0.5rem', color: 'var(--color-terracotta)' }}>⚠️ Share this temporary password with the user</p>
+                                    <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginBottom: '0.75rem' }}>This password is shown only once. The user should change it after first login.</p>
+                                    <code style={{ fontSize: '1.1rem', fontWeight: 700, letterSpacing: '0.05em', background: 'var(--color-parchment)', padding: '0.5rem 0.75rem', borderRadius: '6px', display: 'block', textAlign: 'center', userSelect: 'all' }}>{createdTempPassword}</code>
+                                </div>
+                                <div style={modalActions}>
+                                    <button className="btn btn-primary" onClick={() => { setIsCreatingUser(false); setCreatedTempPassword(null); }}>Done</button>
+                                </div>
+                            </>
+                        ) : (
+                            <form onSubmit={handleCreateUser}>
+                                <div className="input-group">
+                                    <label className="input-label">Name</label>
+                                    <input type="text" className="input-field" value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} required />
+                                </div>
+                                <div className="input-group">
+                                    <label className="input-label">Phone number (login ID)</label>
+                                    <input type="tel" className="input-field" value={newUser.phone} onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })} required />
+                                </div>
+                                <div className="input-group">
+                                    <label className="input-label">Email (optional — temp password will be emailed)</label>
+                                    <input type="email" className="input-field" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} />
+                                </div>
+                                <div style={modalActions}>
+                                    <button type="button" className="btn btn-outline" onClick={() => setIsCreatingUser(false)}>Cancel</button>
+                                    <button type="submit" className="btn btn-primary">Create user</button>
+                                </div>
+                            </form>
+                        )}
                     </div>
                 </div>
             )}

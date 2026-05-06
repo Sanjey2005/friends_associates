@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import dbConnect from '@/lib/db';
@@ -41,7 +42,9 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'A user with this phone number or email already exists' }, { status: 400 });
         }
 
-        const hashedPassword = await bcrypt.hash(phone, 10);
+        // Generate a secure random temporary password (never use the phone number)
+        const tempPassword = crypto.randomBytes(9).toString('base64url'); // 12 URL-safe chars
+        const hashedPassword = await bcrypt.hash(tempPassword, 10);
         const user = await User.create({
             name,
             phone,
@@ -50,8 +53,32 @@ export async function POST(req: Request) {
             isVerified: true,
         });
 
+        // Try to email the temp password if the user has an email address
+        if (email) {
+            try {
+                const { sendEmail } = await import('@/lib/email');
+                await sendEmail(
+                    email,
+                    'Your Friends Associates account is ready',
+                    `<h1>Account Created</h1>
+                    <p>Dear ${name},</p>
+                    <p>Your account has been created. Use the details below to log in:</p>
+                    <p><strong>Phone:</strong> ${phone}<br/>
+                    <strong>Temporary Password:</strong> ${tempPassword}</p>
+                    <p>Please change your password after logging in.</p>
+                    <p>Regards,<br/>Friends Associates</p>`,
+                );
+            } catch {
+                // Email failure is non-fatal — admin still gets the temp password in the response
+            }
+        }
+
         const safeUser = await User.findById(user._id).select('-password');
-        return NextResponse.json({ message: 'User created successfully', user: safeUser }, { status: 201 });
+        return NextResponse.json({
+            message: 'User created successfully',
+            user: safeUser,
+            tempPassword, // Admin must share this with the user
+        }, { status: 201 });
     } catch (error) {
         console.error('Create user error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

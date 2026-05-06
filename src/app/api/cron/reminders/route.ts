@@ -8,11 +8,16 @@ import type { IVehicle } from '@/models/Vehicle';
 
 function isAuthorizedCron(req: Request) {
     const secret = process.env.CRON_SECRET;
+    // Allow unauthenticated access in local dev when no secret is configured
     if (process.env.NODE_ENV !== 'production' && !secret) {
         return true;
     }
 
-    const provided = req.headers.get('x-cron-secret') || new URL(req.url).searchParams.get('key');
+    // Accept only the Authorization: Bearer header — never query params
+    // (query params appear in server logs, browser history, and analytics)
+    // Vercel cron jobs send: Authorization: Bearer <CRON_SECRET>
+    const authHeader = req.headers.get('authorization');
+    const provided = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
     return Boolean(secret && provided === secret);
 }
 

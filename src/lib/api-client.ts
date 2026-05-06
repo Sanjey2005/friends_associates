@@ -38,6 +38,9 @@ export async function apiFetch<T>(input: string, init: RequestInit = {}): Promis
         headers.set('Content-Type', 'application/json');
     }
 
+    // CSRF mitigation: browsers cannot set this header on cross-origin requests
+    headers.set('X-Requested-With', 'XMLHttpRequest');
+
     const response = await fetch(input, {
         credentials: 'same-origin',
         cache: 'no-store',
