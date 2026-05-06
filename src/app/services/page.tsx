@@ -1,5 +1,5 @@
 import Navbar from '@/components/Navbar';
-import { Car, Bike, Heart, Home as HomeIcon, Briefcase, Umbrella, ArrowRight } from 'lucide-react';
+import { Car, Bike, Bus, Truck, Package, ArrowRight } from 'lucide-react';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
 import Script from 'next/script';
@@ -93,42 +93,42 @@ export default function Services() {
     const insurances = [
         {
             name: '2W (Two Wheeler)',
-            icon: <img src="/images/2w.png" alt="2W" width={40} height={40} style={{ objectFit: 'contain' }} />,
+            icon: <Bike size={28} />,
             desc: 'Affordable two-wheeler plans for third-party compliance, own damage protection, renewals, and everyday road risks.',
             bestFor: 'Scooters and motorcycles',
             cta: 'Renew 2W policy',
         },
         {
             name: 'Car',
-            icon: <img src="/images/car.png" alt="Car" width={40} height={40} style={{ objectFit: 'contain' }} />,
+            icon: <Car size={28} />,
             desc: 'Coverage guidance for accidents, theft, third-party liability, own damage, renewals, and claim support for private cars.',
             bestFor: 'Private car owners',
             cta: 'Get car quote',
         },
         {
             name: 'School Bus',
-            icon: <img src="/images/school-bus.png" alt="School Bus" width={40} height={40} style={{ objectFit: 'contain' }} />,
+            icon: <Bus size={28} />,
             desc: 'Comprehensive protection options for school buses, ensuring passenger safety and operational compliance.',
             bestFor: 'Schools and educational institutions',
             cta: 'Protect school bus',
         },
         {
             name: 'Auto 3W',
-            icon: <img src="/images/auto3w.png" alt="Auto 3W" width={40} height={40} style={{ objectFit: 'contain' }} />,
+            icon: <Package size={28} />,
             desc: 'Commercial insurance for three-wheelers, covering passenger liability and vehicle damage.',
             bestFor: 'Auto rickshaw drivers and owners',
             cta: 'Get Auto 3W quote',
         },
         {
             name: 'Tata Ace',
-            icon: <img src="/images/tata-ace.png" alt="Tata Ace" width={40} height={40} style={{ objectFit: 'contain' }} />,
+            icon: <Truck size={28} />,
             desc: 'Specialized goods-carrying commercial vehicle (GCCV) insurance for mini-trucks like Tata Ace.',
             bestFor: 'Logistics and goods transport',
             cta: 'Insure Tata Ace',
         },
         {
             name: 'Lorry',
-            icon: <img src="/images/lorry.png" alt="Lorry" width={40} height={40} style={{ objectFit: 'contain' }} />,
+            icon: <Truck size={28} />,
             desc: 'Heavy goods vehicle insurance covering cargo risks, third-party liability, and transit damages.',
             bestFor: 'Fleet operators and transport businesses',
             cta: 'Discuss lorry cover',

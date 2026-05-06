@@ -11,7 +11,7 @@ export default function QuoteForm() {
         name: '',
         email: '',
         phone: '',
-        product: '',
+        vehicleType: '',
         vehicleModel: '',
         mfgYear: '',
         regNumber: '',
@@ -37,7 +37,7 @@ export default function QuoteForm() {
                 name: '',
                 email: '',
                 phone: '',
-                product: '',
+                vehicleType: '',
                 vehicleModel: '',
                 mfgYear: '',
                 regNumber: '',
@@ -145,10 +145,10 @@ export default function QuoteForm() {
                     <div className="input-group">
                         <label className="input-label">Product *</label>
                         <select
-                            name="product"
+                            name="vehicleType"
                             required
                             className="input-field"
-                            value={formData.product}
+                            value={formData.vehicleType}
                             onChange={handleChange}
                         >
                             <option value="">Select Product</option>
