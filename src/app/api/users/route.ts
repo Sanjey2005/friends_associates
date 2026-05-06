@@ -53,19 +53,22 @@ export async function POST(req: Request) {
             isVerified: true,
         });
 
-        // Try to email the temp password if the user has an email address
+        // Email the user telling them to use Forgot Password to set their password
+        // We never expose the temp password in the email — admin keeps it privately
         if (email) {
             try {
                 const { sendEmail } = await import('@/lib/email');
+                const forgotPasswordUrl = `${process.env.NEXT_PUBLIC_APP_URL}/forgot-password`;
                 await sendEmail(
                     email,
                     'Your Friends Associates account is ready',
-                    `<h1>Account Created</h1>
+                    `<h1>Welcome to Friends Associates</h1>
                     <p>Dear ${name},</p>
-                    <p>Your account has been created. Use the details below to log in:</p>
-                    <p><strong>Phone:</strong> ${phone}<br/>
-                    <strong>Temporary Password:</strong> ${tempPassword}</p>
-                    <p>Please change your password after logging in.</p>
+                    <p>Your account has been created by our team. Your login ID is your phone number: <strong>${phone}</strong></p>
+                    <p>To set your own password, please click the link below:</p>
+                    <p><a href="${forgotPasswordUrl}" style="display:inline-block;background:#c96442;color:#fff;padding:10px 24px;border-radius:6px;text-decoration:none;font-weight:600;">Set My Password</a></p>
+                    <p>Or visit: <a href="${forgotPasswordUrl}">${forgotPasswordUrl}</a></p>
+                    <p>If you did not expect this email, please ignore it.</p>
                     <p>Regards,<br/>Friends Associates</p>`,
                 );
             } catch {
