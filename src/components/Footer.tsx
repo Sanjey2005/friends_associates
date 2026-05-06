@@ -42,7 +42,7 @@ export default function Footer() {
                         }}
                     >
                         <User size={18} style={{ color: 'var(--color-terracotta)' }} />
-                        <span>Sanjey - Managing Director</span>
+                        <span>Ethiraj R - Managing Director</span>
                     </div>
                     <div
                         style={{
