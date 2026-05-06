@@ -42,7 +42,7 @@ export default function Footer() {
                         }}
                     >
                         <User size={18} style={{ color: 'var(--color-terracotta)' }} />
-                        <span>Ethiraj R</span>
+                        <span>Sanjey - Managing Director</span>
                     </div>
                     <div
                         style={{
@@ -74,8 +74,8 @@ export default function Footer() {
                         style={{ flexShrink: 0, marginTop: '3px', color: 'var(--color-terracotta)' }}
                     />
                     <span>
-                        Ho.187 Raju Naidu street, Dr Radhakrishna St, near Omni Bus stand,
-                        Coimbatore, Tamil Nadu 641012
+                        <strong>Head Office:</strong> Ho.187 Raju Naidu street, Dr Radhakrishna St, near Omni Bus stand, Coimbatore, Tamil Nadu 641012<br />
+                        <strong>Branches:</strong> Coimbatore and Udumalpet
                     </span>
                 </div>
 
@@ -87,8 +87,8 @@ export default function Footer() {
                         color: 'var(--color-text-tertiary)',
                     }}
                 >
-                    <p style={{ marginBottom: '0.5rem' }}>
-                        Your trusted insurance partner since 2020
+                    <p style={{ marginBottom: '0.5rem', fontWeight: 500 }}>
+                        A COMPANY WITH 15 YEARS EXPERIENCE
                     </p>
                     <p>© 2025 Friends Associates. All rights reserved.</p>
                 </div>

@@ -52,7 +52,7 @@ export default function AnimatedHero() {
                     }}
                 >
                     <Sparkles size={14} style={{ color: 'var(--color-terracotta)' }} />
-                    <span>5 Years of Excellence</span>
+                    <span>COMPANY WITH 15 YEARS EXPERIENCE</span>
                 </div>
 
                 <h1
@@ -116,9 +116,9 @@ export default function AnimatedHero() {
                         margin: 0,
                     }}
                 >
-                    Coimbatore-based insurance support for cars, bikes, health, life, homes,
+                    Insurance support with branches in Coimbatore and Udumalpet for cars, bikes, health, life, homes,
                     and businesses — with quotes, renewals, claims guidance, and trusted
-                    insurer options since 2020.
+                    insurer options.
                 </p>
 
                 <div

@@ -11,7 +11,7 @@ export default function QuoteForm() {
         name: '',
         email: '',
         phone: '',
-        vehicleType: '',
+        product: '',
         vehicleModel: '',
         mfgYear: '',
         regNumber: '',
@@ -37,7 +37,7 @@ export default function QuoteForm() {
                 name: '',
                 email: '',
                 phone: '',
-                vehicleType: '',
+                product: '',
                 vehicleModel: '',
                 mfgYear: '',
                 regNumber: '',
@@ -86,7 +86,7 @@ export default function QuoteForm() {
                         margin: '0 auto',
                     }}
                 >
-                    Share a few details and our Coimbatore team will help compare suitable
+                    Share a few details and our team will help compare suitable
                     insurance options for your vehicle, family, home, or business.
                 </p>
             </div>
@@ -143,19 +143,19 @@ export default function QuoteForm() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div className="input-group">
-                        <label className="input-label">Vehicle Type *</label>
+                        <label className="input-label">Product *</label>
                         <select
-                            name="vehicleType"
+                            name="product"
                             required
                             className="input-field"
-                            value={formData.vehicleType}
+                            value={formData.product}
                             onChange={handleChange}
                         >
-                            <option value="">Select Type</option>
-                            <option value="Bike">Bike</option>
-                            <option value="Car">Car</option>
-                            <option value="Commercial">Commercial</option>
-                            <option value="Other">Other</option>
+                            <option value="">Select Product</option>
+                            <option value="2W">2W</option>
+                            <option value="CAR">CAR</option>
+                            <option value="GCCV">GCCV</option>
+                            <option value="PCCV">PCCV</option>
                         </select>
                     </div>
                     <div className="input-group">

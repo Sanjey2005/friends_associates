@@ -12,16 +12,19 @@ interface Partner {
 }
 
 const defaultPartners: Partner[] = [
-  { id: 'lic', name: 'LIC of India', domain: 'licindia.in' },
-  { id: 'hdfc-life', name: 'HDFC Life', domain: 'hdfclife.com' },
-  { id: 'icici-pru', name: 'ICICI Prudential', domain: 'iciciprulife.com' },
-  { id: 'sbi-life', name: 'SBI Life', domain: 'sbilife.co.in' },
-  { id: 'max-life', name: 'Max Life', domain: 'maxlifeinsurance.com' },
-  { id: 'bajaj-allianz', name: 'Bajaj Allianz', domain: 'bajajallianz.com' },
+  { id: 'icici-lombard', name: 'ICICI Lombard', domain: 'icicilombard.com' },
   { id: 'tata-aig', name: 'Tata AIG', domain: 'tataaig.com' },
-  { id: 'star-health', name: 'Star Health', domain: 'starhealth.in' },
-  { id: 'new-india', name: 'New India Assurance', domain: 'newindia.co.in' },
-  { id: 'reliance-gen', name: 'Reliance General', domain: 'reliancegeneral.co.in' },
+  { id: 'sbi-general', name: 'SBI General Insurance', domain: 'sbigeneral.in' },
+  { id: 'indusind', name: 'IndusInd General Insurance', domain: 'indusind.com' },
+  { id: 'cholamandalam', name: 'Cholamandalam MS GIC Ltd', domain: 'cholainsurance.com' },
+  { id: 'iffco-tokio', name: 'IFFCO Tokio', domain: 'iffcotokio.co.in' },
+  { id: 'royal-sundram', name: 'Royal Sundram', domain: 'royalsundaram.in' },
+  { id: 'hdfc-ergo', name: 'HDFC Ergo', domain: 'hdfcergo.com' },
+  { id: 'bajaj-allianz', name: 'Bajaj Allianz', domain: 'bajajallianz.com' },
+  { id: 'policy-bazaar', name: 'Policy Bazaar', domain: 'policybazaar.com' },
+  { id: 'niva-bupa', name: 'Niva Bupa Health Insurance', domain: 'nivabupa.com' },
+  { id: 'united-india', name: 'United India', domain: 'uiic.co.in' },
+  { id: 'national-insurance', name: 'National Insurance', domain: 'nationalinsurance.nic.co.in' },
 ];
 
 interface Props {

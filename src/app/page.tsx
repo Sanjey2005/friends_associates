@@ -20,9 +20,9 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'Friends Associates Insurance Services in Coimbatore',
+    title: 'Friends Associates Insurance Services in Coimbatore and Udumalpet',
     description:
-      'Local insurance guidance for families, vehicle owners, and businesses in Coimbatore since 2020.',
+      'Local insurance guidance for families, vehicle owners, and businesses in Coimbatore and Udumalpet.',
     url: '/',
   },
 };
@@ -35,7 +35,7 @@ const localBusinessJsonLd = {
   logo: `${siteUrl}/logo.png`,
   image: `${siteUrl}/logo.png`,
   telephone: '+918220016649',
-  foundingDate: '2020',
+  foundingDate: '2009',
   address: {
     '@type': 'PostalAddress',
     streetAddress: 'Ho.187 Raju Naidu street, Dr Radhakrishna St, near Omni Bus stand',
@@ -44,10 +44,16 @@ const localBusinessJsonLd = {
     postalCode: '641012',
     addressCountry: 'IN',
   },
-  areaServed: {
-    '@type': 'City',
-    name: 'Coimbatore',
-  },
+  areaServed: [
+    {
+      '@type': 'City',
+      name: 'Coimbatore',
+    },
+    {
+      '@type': 'City',
+      name: 'Udumalpet',
+    }
+  ],
   priceRange: '$$',
   serviceType: [
     'Car insurance',
@@ -66,7 +72,7 @@ export default function Home() {
     {
       icon: <Shield size={28} />,
       title: 'Local Insurance Guidance',
-      desc: 'Coimbatore-based support for choosing car, bike, health, life, home, and business coverage with confidence.',
+      desc: 'Support from branches in Coimbatore and Udumalpet for choosing car, bike, health, life, home, and business coverage with confidence.',
     },
     {
       icon: <Clock size={28} />,
@@ -120,7 +126,7 @@ export default function Home() {
                 letterSpacing: '-0.01em',
               }}
             >
-              Insurance support for Coimbatore families, vehicles, and businesses.
+              Insurance support for Tamilnadu families, vehicles, and businesses.
             </h2>
             <p
               style={{
@@ -129,11 +135,10 @@ export default function Home() {
                 lineHeight: 1.6,
               }}
             >
-              Since 2020, Friends Associates has helped customers compare policies, manage
+              With 15 years of experience, Friends Associates has helped customers compare policies, manage
               renewals, understand claims, and choose cover from trusted insurance providers.
             </p>
           </div>
-
           <div
             style={{
               display: 'grid',
