@@ -31,7 +31,13 @@ export default function UserLogin() {
             toast.success('Welcome back!');
             setTimeout(() => { window.location.href = '/dashboard/user'; }, 500);
         } catch (error) {
-            toast.error(errorMessage(error, 'Login failed'));
+            const msg = errorMessage(error, 'Login failed');
+            if (msg.includes('verify your email')) {
+                setRegisteredEmail(loginData.phone);
+                setEmailSent(true);
+            } else {
+                toast.error(msg);
+            }
         } finally {
             setLoading(false);
         }
@@ -70,9 +76,10 @@ export default function UserLogin() {
     const handleResend = async () => {
         setResending(true);
         try {
+            const payload = registeredEmail.includes('@') ? { email: registeredEmail } : { phone: registeredEmail };
             await apiFetch('/api/auth/user/resend-verification', {
                 method: 'POST',
-                body: jsonBody({ email: registeredEmail }),
+                body: jsonBody(payload),
             });
             toast.success('Verification email sent again!');
             startResendCooldown();
