@@ -98,7 +98,7 @@ export default function AdminVehiclesTab({ vehicles, users, onDataChange }: Prop
                         <tbody>
                             {paginatedVehicles.map((v) => (
                                 <tr key={v._id}>
-                                    <td>{typeof v.userId === 'object' ? v.userId.name : 'Unknown user'}</td>
+                                    <td>{v.userId && typeof v.userId === 'object' ? v.userId.name : 'Unknown user'}</td>
                                     <td>{v.type}</td>
                                     <td>{v.vehicleModel}</td>
                                     <td>{v.regNumber}</td>

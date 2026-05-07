@@ -22,19 +22,19 @@ export const defaultPolicyFormState: PolicyFormState = {
 };
 
 export function getUserName(policy: PolicyRecord) {
-    return typeof policy.userId === 'object' ? policy.userId.name : '';
+    return policy.userId && typeof policy.userId === 'object' ? policy.userId.name : '';
 }
 
 export function getUserEmail(policy: PolicyRecord) {
-    return typeof policy.userId === 'object' ? policy.userId.email || '' : '';
+    return policy.userId && typeof policy.userId === 'object' ? policy.userId.email || '' : '';
 }
 
 export function getVehicle(policy: PolicyRecord) {
-    return typeof policy.vehicleId === 'object' ? policy.vehicleId : null;
+    return policy.vehicleId && typeof policy.vehicleId === 'object' ? policy.vehicleId : null;
 }
 
 export function vehicleOwnerId(vehicle: VehicleRecord) {
-    return typeof vehicle.userId === 'object' ? vehicle.userId._id : vehicle.userId;
+    return vehicle.userId && typeof vehicle.userId === 'object' ? vehicle.userId._id : vehicle.userId;
 }
 
 export function filterPolicies(

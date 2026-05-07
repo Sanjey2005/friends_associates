@@ -80,7 +80,7 @@ export function PoliciesSection({ policies }: PoliciesSectionProps) {
                                     color: 'var(--color-text)',
                                 }}
                             >
-                                {typeof policy.vehicleId === 'object' ? policy.vehicleId.vehicleModel : 'Vehicle'}
+                                {policy.vehicleId && typeof policy.vehicleId === 'object' ? policy.vehicleId.vehicleModel : 'Vehicle'}
                             </h3>
                             <p
                                 style={{
@@ -89,7 +89,7 @@ export function PoliciesSection({ policies }: PoliciesSectionProps) {
                                     fontSize: '0.9rem',
                                 }}
                             >
-                                {typeof policy.vehicleId === 'object' ? policy.vehicleId.regNumber : ''}
+                                {policy.vehicleId && typeof policy.vehicleId === 'object' ? policy.vehicleId.regNumber : ''}
                             </p>
                             {policy.policyLink ? (
                                 <a

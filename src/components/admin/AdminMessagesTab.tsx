@@ -43,7 +43,7 @@ export default function AdminMessagesTab({ chats, onDataChange }: Props) {
         e.preventDefault();
         if (!adminMessage.trim() || !selectedChat) return;
         try {
-            const userId = typeof selectedChat.userId === 'object' ? selectedChat.userId._id : selectedChat.userId;
+            const userId = selectedChat.userId && typeof selectedChat.userId === 'object' ? selectedChat.userId._id : selectedChat.userId;
             await apiFetch('/api/chat', {
                 method: 'POST',
                 body: jsonBody({ text: adminMessage, userId }),
@@ -99,8 +99,8 @@ export default function AdminMessagesTab({ chats, onDataChange }: Props) {
                                         borderLeft: isActive ? '3px solid var(--color-terracotta)' : '3px solid transparent',
                                     }}
                                 >
-                                    <div style={{ fontWeight: 500, color: 'var(--color-text)' }}>{typeof chat.userId === 'object' ? chat.userId.name : 'Unknown user'}</div>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-tertiary)' }}>{typeof chat.userId === 'object' ? chat.userId.email : ''}</div>
+                                    <div style={{ fontWeight: 500, color: 'var(--color-text)' }}>{chat.userId && typeof chat.userId === 'object' ? chat.userId.name : 'Unknown user'}</div>
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-tertiary)' }}>{chat.userId && typeof chat.userId === 'object' ? chat.userId.email : ''}</div>
                                     <div style={{ fontSize: '0.75rem', color: 'var(--color-text-tertiary)', marginTop: '0.25rem' }}>
                                         {format(new Date(chat.lastUpdated), 'dd MMM HH:mm')}
                                     </div>
@@ -116,9 +116,9 @@ export default function AdminMessagesTab({ chats, onDataChange }: Props) {
                         <>
                             <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--color-border)', background: 'var(--color-ivory)' }}>
                                 <h3 style={{ margin: 0, fontFamily: 'var(--font-serif)', fontSize: '1.125rem', fontWeight: 500, color: 'var(--color-text)' }}>
-                                    {typeof selectedChat.userId === 'object' ? selectedChat.userId.name : 'Unknown user'}
+                                    {selectedChat.userId && typeof selectedChat.userId === 'object' ? selectedChat.userId.name : 'Unknown user'}
                                 </h3>
-                                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-tertiary)' }}>{typeof selectedChat.userId === 'object' ? selectedChat.userId.email : ''}</span>
+                                <span style={{ fontSize: '0.8rem', color: 'var(--color-text-tertiary)' }}>{selectedChat.userId && typeof selectedChat.userId === 'object' ? selectedChat.userId.email : ''}</span>
                             </div>
                             <div style={{ flex: 1, padding: '1.25rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem', background: 'var(--color-parchment)' }}>
                                 {selectedChat.messages.map((msg: ChatMessage, idx: number) => {
