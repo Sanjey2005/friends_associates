@@ -11,12 +11,8 @@ export type UserTokenPayload = AppTokenPayload & { role: typeof USER_ROLES.USER 
 export type AdminTokenPayload = AppTokenPayload & { role: typeof USER_ROLES.ADMIN };
 type SignPayload = Pick<AppTokenPayload, 'id' | 'email'>;
 
-const userSecret = process.env.JWT_SECRET_USER;
-const adminSecret = process.env.JWT_SECRET_ADMIN;
-
-if (!userSecret || !adminSecret) {
-    throw new Error('Please define JWT_SECRET_USER and JWT_SECRET_ADMIN in .env.local');
-}
+const userSecret = process.env.JWT_SECRET_USER || '';
+const adminSecret = process.env.JWT_SECRET_ADMIN || '';
 
 const encoder = new TextEncoder();
 const userKey = encoder.encode(userSecret);
