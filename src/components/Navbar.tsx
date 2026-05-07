@@ -1,8 +1,13 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import ThemeToggle from './ThemeToggle';
+import { cookies } from 'next/headers';
+import { COOKIE_NAMES } from '@/lib/cookies';
 
-export default function Navbar() {
+export default async function Navbar() {
+    const cookieStore = await cookies();
+    const isAdmin = cookieStore.has(COOKIE_NAMES.ADMIN_TOKEN);
+
     return (
         <nav className="navbar">
             <div className="container navbar-content">
@@ -43,9 +48,15 @@ export default function Navbar() {
                     >
                         Services
                     </Link>
-                    <Link href="/login/user" className="btn btn-primary">
-                        Login
-                    </Link>
+                    {isAdmin ? (
+                        <Link href="https://admin.friendsassociates.org" className="btn btn-primary">
+                            Dashboard
+                        </Link>
+                    ) : (
+                        <Link href="/login/user" className="btn btn-primary">
+                            Login
+                        </Link>
+                    )}
                 </div>
             </div>
         </nav>

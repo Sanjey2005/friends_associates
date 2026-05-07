@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
+import ThemeToggle from '@/components/ThemeToggle';
 import AdminAnalytics from '@/components/AdminAnalytics';
 import AdminPoliciesTab from '@/components/admin/AdminPoliciesTab';
 import AdminLeadsTab from '@/components/admin/AdminLeadsTab';
@@ -131,9 +132,18 @@ export default function AdminDashboard() {
                             </div>
                         </div>
                     </Link>
-                    <button onClick={handleLogout} className="btn btn-ghost">
-                        <LogOut size={16} /> Log out
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                        <ThemeToggle />
+                        <Link href="https://friendsassociates.org" className="btn btn-ghost" style={{ padding: '0.5rem 0.75rem' }}>
+                            Home
+                        </Link>
+                        <Link href="https://friendsassociates.org/services" className="btn btn-ghost" style={{ padding: '0.5rem 0.75rem' }}>
+                            Services
+                        </Link>
+                        <button onClick={handleLogout} className="btn btn-outline" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            <LogOut size={16} /> Log out
+                        </button>
+                    </div>
                 </div>
             </nav>
 
