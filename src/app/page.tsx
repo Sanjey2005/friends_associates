@@ -1,5 +1,6 @@
 import Navbar from '@/components/Navbar';
 import QuoteForm from '@/components/QuoteForm';
+import ShortsCarousel from '@/components/ShortsCarousel';
 import Footer from '@/components/Footer';
 import AnimatedHero from '@/components/AnimatedHero';
 import PartnersCarousel from '@/components/PartnersCarousel';
@@ -215,6 +216,8 @@ export default function Home() {
       </section>
 
       <PartnersCarousel />
+
+      <ShortsCarousel />
 
       {/* Quote Form — Parchment */}
       <section
