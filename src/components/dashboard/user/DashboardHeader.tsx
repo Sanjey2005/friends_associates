@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { LogOut, Settings } from 'lucide-react';
+import ThemeToggle from '@/components/ThemeToggle';
 
 interface DashboardHeaderProps {
     onOpenProfile: () => void;
@@ -46,7 +47,30 @@ export function DashboardHeader({ onOpenProfile, onLogout }: DashboardHeaderProp
                         </div>
                     </div>
                 </Link>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <ThemeToggle />
+                    <Link
+                        href="/"
+                        style={{
+                            color: 'var(--color-text-strong)',
+                            fontWeight: 500,
+                            fontSize: '0.95rem',
+                            padding: '0.5rem 0.75rem',
+                        }}
+                    >
+                        Home
+                    </Link>
+                    <Link
+                        href="/services"
+                        style={{
+                            color: 'var(--color-text-strong)',
+                            fontWeight: 500,
+                            fontSize: '0.95rem',
+                            padding: '0.5rem 0.75rem',
+                        }}
+                    >
+                        Services
+                    </Link>
                     <button onClick={onOpenProfile} className="btn btn-outline">
                         <Settings size={16} /> Profile
                     </button>

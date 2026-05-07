@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import ThemeToggle from './ThemeToggle';
 
-export default function Navbar({ isAdmin = false }: { isAdmin?: boolean }) {
+export default function Navbar({ isAdmin = false, isUser = false }: { isAdmin?: boolean; isUser?: boolean }) {
     return (
         <nav className="navbar">
             <div className="container navbar-content">
@@ -45,6 +45,10 @@ export default function Navbar({ isAdmin = false }: { isAdmin?: boolean }) {
                     </Link>
                     {isAdmin ? (
                         <Link href="https://admin.friendsassociates.org" className="btn btn-primary">
+                            Dashboard
+                        </Link>
+                    ) : isUser ? (
+                        <Link href="/dashboard/user" className="btn btn-primary">
                             Dashboard
                         </Link>
                     ) : (

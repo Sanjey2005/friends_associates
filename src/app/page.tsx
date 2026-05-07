@@ -73,6 +73,7 @@ const localBusinessJsonLd = {
 export default async function Home() {
   const cookieStore = await cookies();
   const isAdmin = cookieStore.has(COOKIE_NAMES.ADMIN_TOKEN);
+  const isUser = cookieStore.has(COOKIE_NAMES.USER_TOKEN);
 
   const features = [
     {
@@ -104,7 +105,7 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }}
       />
-      <Navbar isAdmin={isAdmin} />
+      <Navbar isAdmin={isAdmin} isUser={isUser} />
 
       <AnimatedHero />
 

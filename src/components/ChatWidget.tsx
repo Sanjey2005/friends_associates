@@ -95,8 +95,8 @@ export default function ChatWidget() {
                     <div
                         style={{
                             padding: '1rem 1.25rem',
-                            background: 'var(--color-near-black)',
-                            color: 'var(--color-ivory)',
+                            background: 'var(--color-terracotta)',
+                            color: '#ffffff',
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
@@ -109,6 +109,7 @@ export default function ChatWidget() {
                                 fontFamily: 'var(--font-serif)',
                                 fontSize: '1.125rem',
                                 fontWeight: 500,
+                                color: 'inherit',
                             }}
                         >
                             Support Chat
@@ -119,7 +120,7 @@ export default function ChatWidget() {
                             style={{
                                 background: 'none',
                                 border: 'none',
-                                color: 'var(--color-text-on-dark)',
+                                color: 'inherit',
                                 cursor: 'pointer',
                                 padding: '0.25rem',
                             }}
@@ -168,7 +169,7 @@ export default function ChatWidget() {
                                             ? 'var(--color-terracotta)'
                                             : 'var(--color-ivory)',
                                         color: isUser
-                                            ? 'var(--color-ivory)'
+                                            ? '#ffffff'
                                             : 'var(--color-text)',
                                         border: isUser
                                             ? 'none'
