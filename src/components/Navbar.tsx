@@ -1,13 +1,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import ThemeToggle from './ThemeToggle';
-import { cookies } from 'next/headers';
-import { COOKIE_NAMES } from '@/lib/cookies';
 
-export default async function Navbar() {
-    const cookieStore = await cookies();
-    const isAdmin = cookieStore.has(COOKIE_NAMES.ADMIN_TOKEN);
-
+export default function Navbar({ isAdmin = false }: { isAdmin?: boolean }) {
     return (
         <nav className="navbar">
             <div className="container navbar-content">

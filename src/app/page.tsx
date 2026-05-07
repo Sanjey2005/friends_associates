@@ -8,6 +8,8 @@ import Link from 'next/link';
 import Script from 'next/script';
 import { Shield, Clock, Award, Wallet, ArrowRight } from 'lucide-react';
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
+import { COOKIE_NAMES } from '@/lib/cookies';
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://friendsassociates.in';
 
@@ -68,7 +70,10 @@ const localBusinessJsonLd = {
   ],
 };
 
-export default function Home() {
+export default async function Home() {
+  const cookieStore = await cookies();
+  const isAdmin = cookieStore.has(COOKIE_NAMES.ADMIN_TOKEN);
+
   const features = [
     {
       icon: <Shield size={28} />,
@@ -99,7 +104,7 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessJsonLd) }}
       />
-      <Navbar />
+      <Navbar isAdmin={isAdmin} />
 
       <AnimatedHero />
 

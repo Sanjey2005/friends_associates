@@ -4,6 +4,8 @@ import Footer from '@/components/Footer';
 import Link from 'next/link';
 import Script from 'next/script';
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
+import { COOKIE_NAMES } from '@/lib/cookies';
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://friendsassociates.in';
 
@@ -89,7 +91,10 @@ const faqJsonLd = {
     })),
 };
 
-export default function Services() {
+export default async function Services() {
+    const cookieStore = await cookies();
+    const isAdmin = cookieStore.has(COOKIE_NAMES.ADMIN_TOKEN);
+
     const insurances = [
         {
             name: '2W (Two Wheeler)',
@@ -163,7 +168,7 @@ export default function Services() {
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
             />
-            <Navbar />
+            <Navbar isAdmin={isAdmin} />
 
             {/* Hero — Parchment */}
             <section
