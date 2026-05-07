@@ -10,35 +10,50 @@ function applySecurityHeaders(response: NextResponse) {
     return response;
 }
 
-function redirectToLogin(request: NextRequest, loginPath: string) {
-    const loginUrl = new URL(loginPath, request.url);
-    loginUrl.searchParams.set('redirect', request.nextUrl.pathname);
-    return applySecurityHeaders(NextResponse.redirect(loginUrl));
-}
-
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
-    const response = applySecurityHeaders(NextResponse.next());
+    const hostname = request.headers.get('host') || '';
+    const isAdminDomain = hostname === 'admin.friendsassociates.org';
 
+    // --- Admin subdomain: redirect root to admin login/dashboard ---
+    if (isAdminDomain && pathname === '/') {
+        const token = request.cookies.get(COOKIE_NAMES.ADMIN_TOKEN)?.value;
+        const admin = token ? await verifyAdminToken(token) : null;
+        const target = request.nextUrl.clone();
+        target.pathname = admin ? '/dashboard/admin' : '/login/admin';
+        return NextResponse.redirect(target);
+    }
+
+    // --- Protect /dashboard/admin ---
     if (pathname.startsWith('/dashboard/admin')) {
         const token = request.cookies.get(COOKIE_NAMES.ADMIN_TOKEN)?.value;
         const admin = token ? await verifyAdminToken(token) : null;
         if (!admin) {
-            return redirectToLogin(request, '/login/admin');
+            const loginUrl = request.nextUrl.clone();
+            loginUrl.pathname = '/login/admin';
+            loginUrl.searchParams.set('redirect', pathname);
+            return applySecurityHeaders(NextResponse.redirect(loginUrl));
         }
     }
 
+    // --- Protect /dashboard/user ---
     if (pathname.startsWith('/dashboard/user')) {
         const token = request.cookies.get(COOKIE_NAMES.USER_TOKEN)?.value;
         const user = token ? await verifyUserToken(token) : null;
         if (!user) {
-            return redirectToLogin(request, '/login/user');
+            const loginUrl = request.nextUrl.clone();
+            loginUrl.pathname = '/login/user';
+            loginUrl.searchParams.set('redirect', pathname);
+            return applySecurityHeaders(NextResponse.redirect(loginUrl));
         }
     }
 
-    return response;
+    return applySecurityHeaders(NextResponse.next());
 }
 
 export const config = {
-    matcher: ['/dashboard/:path*'],
+    // Only run middleware on the root path and dashboard routes.
+    // This is intentionally narrow to avoid interfering with static assets,
+    // API routes, or any other pages on the main domain.
+    matcher: ['/', '/dashboard/:path*'],
 };
