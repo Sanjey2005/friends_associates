@@ -4,7 +4,7 @@ import { Fraunces, Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://friendsassociates.in';
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://friendsassociates.org';
 
 const fraunces = Fraunces({
   subsets: ['latin'],

@@ -7,7 +7,7 @@ import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import { COOKIE_NAMES } from '@/lib/cookies';
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://friendsassociates.in';
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://friendsassociates.org';
 
 export const metadata: Metadata = {
     title: 'Services',
