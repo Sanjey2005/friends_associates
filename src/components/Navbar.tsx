@@ -43,11 +43,8 @@ export default function Navbar() {
                     >
                         Services
                     </Link>
-                    <Link href="/login/user" className="btn btn-outline">
-                        User Login
-                    </Link>
-                    <Link href="/login/admin" className="btn btn-primary">
-                        Admin Login
+                    <Link href="/login/user" className="btn btn-primary">
+                        Login
                     </Link>
                 </div>
             </div>
