@@ -38,19 +38,30 @@ export async function POST(req: Request) {
         await user.save();
 
         const verificationUrl = buildAppUrl('/verify-email', { token: verificationToken });
-        // Fire and forget email to make resend fast
-        sendEmail(
-            user.email,
-            'Verify your email - Friends Associates',
-            `
-                <h1>Verify your email</h1>
-                <p>Please click the link below to verify your email address:</p>
-                <p><a href="${verificationUrl}">${verificationUrl}</a></p>
-                <p>This link will expire in 24 hours.</p>
-            `,
-        ).catch((emailError) => {
+        try {
+            await sendEmail(
+                user.email,
+                'Verify your email - Friends Associates',
+                `
+                    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                        <h1 style="color: #c96442;">Verify your email</h1>
+                        <p>We received a request to resend your verification email.</p>
+                        <p style="margin: 30px 0;">
+                            <a href="${verificationUrl}" style="background-color: #c96442; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Verify My Email Address</a>
+                        </p>
+                        <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
+                        <p><a href="${verificationUrl}" style="color: #c96442;">${verificationUrl}</a></p>
+                        <p>This link will expire in 24 hours.</p>
+                        <p style="margin-top: 40px; font-size: 14px; color: #777;">
+                            Regards,<br/>
+                            Friends Associates Team
+                        </p>
+                    </div>
+                `,
+            );
+        } catch (emailError) {
             console.error('Resend verification email error:', emailError);
-        });
+        }
 
         return NextResponse.json({ message: GENERIC_MESSAGE }, { status: 200 });
     } catch (error) {

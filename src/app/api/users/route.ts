@@ -59,8 +59,7 @@ export async function POST(req: Request) {
             try {
                 const { sendEmail } = await import('@/lib/email');
                 const forgotPasswordUrl = `https://friendsassociates.org/forgot-password`;
-                // Fire and forget email to make admin creation fast
-                sendEmail(
+                await sendEmail(
                     email,
                     'Your Friends Associates account is ready',
                     `<h1>Welcome to Friends Associates</h1>
@@ -71,7 +70,7 @@ export async function POST(req: Request) {
                     <p>Or visit: <a href="${forgotPasswordUrl}">${forgotPasswordUrl}</a></p>
                     <p>If you did not expect this email, please ignore it.</p>
                     <p>Regards,<br/>Friends Associates</p>`,
-                ).catch(() => {});
+                );
             } catch {
                 // Email failure is non-fatal — admin still gets the temp password in the response
             }
