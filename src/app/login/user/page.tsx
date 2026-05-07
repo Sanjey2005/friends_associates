@@ -144,7 +144,9 @@ export default function UserLogin() {
                                 Check your inbox
                             </h2>
                             <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '0.5rem' }}>
-                                We sent a verification link to
+                                {registeredEmail.includes('@') 
+                                    ? 'We sent a verification link to' 
+                                    : 'Verification email has been sent to the email connected to this phone number:'}
                             </p>
                             <p style={{ fontWeight: 600, color: 'var(--color-text)', marginBottom: '1.5rem' }}>
                                 {registeredEmail}

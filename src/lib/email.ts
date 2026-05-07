@@ -34,14 +34,25 @@ export function escapeHtml(value: string) {
         .replaceAll("'", '&#39;');
 }
 
-export async function sendEmail(to: string, subject: string, html: string) {
+export async function sendEmail(to: string, subject: string, html: string, retries = 1): Promise<any> {
     const transporter = getTransporter();
-    const info = await transporter.sendMail({
-        from: `"Friends Associates" <${process.env.EMAIL_USER}>`,
-        to,
-        subject,
-        html,
-    });
-
-    return info;
+    
+    try {
+        const info = await transporter.sendMail({
+            from: `"Friends Associates" <${process.env.EMAIL_USER}>`,
+            to,
+            subject,
+            html,
+        });
+        return info;
+    } catch (error) {
+        if (retries > 0) {
+            console.warn(`Email sending failed, retrying... (${retries} retries left)`);
+            await new Promise(resolve => setTimeout(resolve, 1500)); // wait 1.5s
+            // Clear cached transporter in case it's a stale connection
+            cachedTransporter = null;
+            return sendEmail(to, subject, html, retries - 1);
+        }
+        throw error;
+    }
 }

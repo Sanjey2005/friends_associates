@@ -118,6 +118,11 @@ html[data-theme='dark'] .btn-dark {
   color: var(--color-text);
 }
 
+html[data-theme='dark'] .btn-outline:hover {
+  background: #3a3a37;
+  color: var(--color-text);
+}
+
 .theme-icon {
   display: inline-flex;
   align-items: center;
