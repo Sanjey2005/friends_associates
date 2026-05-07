@@ -45,22 +45,19 @@ export async function POST(req: Request) {
             verificationTokenExpiry: new Date(Date.now() + 24 * 60 * 60 * 1000),
         });
 
-        try {
-            await sendEmail(
-                email,
-                'Verify your email - Friends Associates',
-                `
-                    <h1>Welcome to Friends Associates</h1>
-                    <p>Please click the link below to verify your email address:</p>
-                    <p><a href="${verificationUrl}">${verificationUrl}</a></p>
-                    <p>This link will expire in 24 hours.</p>
-                `,
-            );
-        } catch (emailError) {
-            await User.findByIdAndDelete(user._id);
+        // Fire and forget email to make registration fast
+        sendEmail(
+            email,
+            'Verify your email - Friends Associates',
+            `
+                <h1>Welcome to Friends Associates</h1>
+                <p>Please click the link below to verify your email address:</p>
+                <p><a href="${verificationUrl}">${verificationUrl}</a></p>
+                <p>This link will expire in 24 hours.</p>
+            `,
+        ).catch((emailError) => {
             console.error('Verification email error:', emailError);
-            return NextResponse.json({ error: 'Unable to send verification email right now' }, { status: 503 });
-        }
+        });
 
         return NextResponse.json(
             { message: 'User registered successfully. Please check your email to verify your account.' },

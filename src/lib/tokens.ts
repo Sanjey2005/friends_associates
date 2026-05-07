@@ -13,10 +13,7 @@ export function tokenLookup(field: string, token: string) {
 }
 
 export function buildAppUrl(path: string, params: Record<string, string>) {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
-    if (!baseUrl) {
-        throw new Error('NEXT_PUBLIC_APP_URL is required to build email links');
-    }
+    const baseUrl = 'https://friendsassociates.org';
 
     const url = new URL(path, baseUrl);
     for (const [key, value] of Object.entries(params)) {

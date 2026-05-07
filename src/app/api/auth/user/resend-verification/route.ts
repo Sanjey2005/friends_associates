@@ -38,7 +38,8 @@ export async function POST(req: Request) {
         await user.save();
 
         const verificationUrl = buildAppUrl('/verify-email', { token: verificationToken });
-        await sendEmail(
+        // Fire and forget email to make resend fast
+        sendEmail(
             user.email,
             'Verify your email - Friends Associates',
             `
@@ -47,7 +48,9 @@ export async function POST(req: Request) {
                 <p><a href="${verificationUrl}">${verificationUrl}</a></p>
                 <p>This link will expire in 24 hours.</p>
             `,
-        );
+        ).catch((emailError) => {
+            console.error('Resend verification email error:', emailError);
+        });
 
         return NextResponse.json({ message: GENERIC_MESSAGE }, { status: 200 });
     } catch (error) {

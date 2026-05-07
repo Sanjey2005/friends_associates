@@ -38,22 +38,20 @@ export async function POST(req: Request) {
         await user.save();
 
         const resetUrl = buildAppUrl('/reset-password', { token: resetToken });
-        try {
-            await sendEmail(
-                user.email,
-                'Reset your password - Friends Associates',
-                `
-                    <h1>Password Reset Request</h1>
-                    <p>You requested to reset your password. Please click the link below:</p>
-                    <p><a href="${resetUrl}">${resetUrl}</a></p>
-                    <p>This link will expire in 1 hour.</p>
-                    <p>If you did not request this, please ignore this email.</p>
-                `,
-            );
-        } catch (emailError) {
+        // Fire and forget email to make reset fast
+        sendEmail(
+            user.email,
+            'Reset your password - Friends Associates',
+            `
+                <h1>Password Reset Request</h1>
+                <p>You requested to reset your password. Please click the link below:</p>
+                <p><a href="${resetUrl}">${resetUrl}</a></p>
+                <p>This link will expire in 1 hour.</p>
+                <p>If you did not request this, please ignore this email.</p>
+            `,
+        ).catch((emailError) => {
             console.error('Password reset email error:', emailError);
-            return NextResponse.json({ message: GENERIC_MESSAGE }, { status: 200 });
-        }
+        });
 
         return NextResponse.json({ message: GENERIC_MESSAGE }, { status: 200 });
     } catch (error) {
